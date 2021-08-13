@@ -3,6 +3,9 @@ uuid = "9105938f-1533-4102-bbe6-42035c5de178"
 authors = ["Jun Tian <tianjun.cpp@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+Badges = "f8f3bd14-6f44-485b-add6-c2abd0d3421f"
+
 [compat]
 julia = "1"
 

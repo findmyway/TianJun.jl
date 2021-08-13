@@ -8,13 +8,15 @@ makedocs(
         analytics = "UA-132847825-3",
         assets = [
             "assets/favicon.ico",
+            "assets/custom.css",
         ]
     ),
     sitename = "田俊",
     linkcheck = haskey(ENV, "CI"),
     pages = [
-        "关于" => "index.md",
-        "存档" => [
+        "👋 关于" => "index.md",
+        "🔗 友链" => "blogroll.md",
+        "🗃️ 存档" => [
             "20210812" => "essays/archive.md",
             hide("essays/A_Draft_Design_of_Distributed_Reinforcement_Learning_in_Julia/index.md"),
             hide("essays/A_Dream/index.md"),

@@ -1,0 +1,22 @@
+.blogmeta {
+    margin: 15px 0;
+}
+
+.blogmeta svg{
+    margin: 0 3px;
+}
+
+article.content img{
+    display: block;
+    margin: auto;
+}
+
+.avatar {
+    width: 460px;
+    height: 460px;
+    margin: auto;
+    background: url("/assets/logo_square.jpg") no-repeat;
+}
+.avatar:hover {
+    background: url("/assets/logo_square_color.jpg") no-repeat;
+}
