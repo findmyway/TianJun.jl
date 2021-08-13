@@ -74,3 +74,8 @@ makedocs(
         ]
     ]
 )
+
+deploydocs(
+    repo = "github.com/findmyway/TianJun.jl.git",
+    target = "build"
+)
