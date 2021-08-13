@@ -61,14 +61,10 @@ jobs:
             using TianJun
             doctest(TianJun)'
       - run: julia --project=docs docs/make.jl
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
 
       - uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' }}
         with:
-          deploy_key: ${{ secrets.DOCUMENTER_KEY }}
+          personal_token: ${{ secrets.BLOG }}
           external_repository: findmyway/findmyway.github.io
           force_orphan: true
           publish_branch: master
