@@ -1,11 +1,18 @@
 using Documenter
 using TianJun
+using TianJun.Blog: recursive_replace
+
+recursive_replace(@__DIR__, r"\.zh(?<ext>(\.md)?)$" => s"\g<ext>")
+
+const BUILD_DIR = "build.zh"
 
 makedocs(
     modules = [TianJun],
     format = Documenter.HTML(
         prettyurls = true,
         analytics = "UA-132847825-3",
+        lang = "zh-CN",
+        footer = "本站基于 [Documenter.jl](https://github.com/JuliaDocs/Documenter.jl) 和 [Julia 编程语言](https://julialang.org/) 构建，所有内容默认遵循[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)协议。英文版请访问[juntian.me](https://juntian.me)。",
         assets = [
             "assets/favicon.ico",
             "assets/custom.css",
@@ -13,6 +20,7 @@ makedocs(
     ),
     sitename = "田俊",
     linkcheck = haskey(ENV, "CI"),
+    build = BUILD_DIR,
     pages = [
         "👋 关于" => "index.md",
         "🔗 友链" => "blogroll.md",
@@ -74,3 +82,5 @@ makedocs(
         ]
     ]
 )
+
+cp(joinpath(@__DIR__, "CNAME"), joinpath(@__DIR__, BUILD_DIR, "CNAME");force=true)

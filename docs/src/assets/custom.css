@@ -12,8 +12,8 @@ article.content img{
 }
 
 .avatar {
-    width: 460px;
-    height: 460px;
+    width: 400px;
+    height: 400px;
     margin: auto;
     background: url("/assets/logo_square.jpg") no-repeat;
 }

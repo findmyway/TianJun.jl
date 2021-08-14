@@ -60,7 +60,9 @@ jobs:
             using Documenter: doctest
             using TianJun
             doctest(TianJun)'
-      - run: julia --project=docs docs/make.jl
+
+      - run: julia --project=docs docs/make.zh.jl
+      - run: julia --project=docs docs/make.en.jl
 
       - uses: peaceiris/actions-gh-pages@v3
         with:
@@ -68,4 +70,10 @@ jobs:
           external_repository: findmyway/findmyway.github.io
           force_orphan: true
           publish_branch: master
-          publish_dir: ./docs/build
+          publish_dir: ./docs/build.zh
+
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force_orphan: true
+          publish_dir: ./docs/build.en

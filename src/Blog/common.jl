@@ -33,3 +33,17 @@ function blog_meta(;
 
     "<div class=blogmeta>$html</div>"
 end
+
+function recursive_replace(dir, (pattern, substitute))
+    for (root, dirs, files) in walkdir(dir)
+        for f in files
+            if !isnothing(match(pattern, f))
+                cp(
+                    joinpath(root, f),
+                    joinpath(root, replace(f, pattern => substitute))
+                    ;force=true
+                )
+            end
+        end
+    end
+end
