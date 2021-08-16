@@ -20,3 +20,8 @@ article.content img{
 .avatar:hover {
     background: url("/assets/logo_square_color.jpg") no-repeat;
 }
+
+iframe {
+    width: 100%;
+    height: 100vh;
+}
