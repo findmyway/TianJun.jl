@@ -1,6 +1,7 @@
 using Documenter
 using TianJun
-using TianJun.Blog: recursive_replace
+
+include("common.jl")
 
 recursive_replace(@__DIR__, r"\.zh(?<ext>(\.md)?)$" => s"\g<ext>")
 
@@ -26,6 +27,7 @@ makedocs(
         "🔗 友链" => "blogroll.md",
         "🗃️ 存档" => [
             "20210812" => "essays/archive.md",
+            hide("notebook_demo/pluto.md"),
             hide("essays/A_Draft_Design_of_Distributed_Reinforcement_Learning_in_Julia/index.md"),
             hide("essays/A_Dream/index.md"),
             hide("essays/A_Guide_to_Wrap_a_C++_Library_with_CXXWrap.jl_and_BinaryBuilder.jl_in_Julia/index.md"),

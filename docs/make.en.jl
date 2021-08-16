@@ -1,7 +1,7 @@
 using Documenter
 using TianJun
-using TianJun.Blog: recursive_replace
 
+include("common.jl")
 recursive_replace(@__DIR__, r"\.en(?<ext>(\.md)?)$" => s"\g<ext>")
 
 const BUILD_DIR = "build.en"
