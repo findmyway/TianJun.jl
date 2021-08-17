@@ -12,7 +12,14 @@ function recursive_replace(dir, (pattern, substitute))
     end
 end
 
-# @blog_meta
+#=
+```@blog_meta
+last_update="2021-08-13"
+create="2021-08-12"
+download_link="../x.txt"
+tags=["Archive", "记录", "Test"]
+```
+=#
 
 using Badges
 
@@ -100,7 +107,11 @@ function Selectors.runner(::Type{BlogMetaBlocks}, x, page, doc)
 end
 
 
-# inline
+#=
+```@inline ../path/to/your.html
+```
+=#
+
 abstract type InlineBlocks <: ExpanderPipeline end
 Selectors.order(::Type{InlineBlocks}) = 21.0
 Selectors.matcher(::Type{InlineBlocks}, node, page, doc) = iscode(node, r"^@inline")
@@ -111,4 +122,28 @@ function Selectors.runner(::Type{InlineBlocks}, x, page, doc)
         f = m[2]
         page.mapping[x] = Documents.RawHTML("<iframe src=\"$f\"></iframe>")
     end
+end
+
+#=
+```@comment
+```
+=#
+
+const COMMENT_TEMPLATE = """
+    <script src="https://utteranc.es/client.js"
+            repo="findmyway/TianJun.jl"
+            issue-term="url"
+            label="💬Comment"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+    """
+
+abstract type CommentBlocks <: ExpanderPipeline end
+Selectors.order(::Type{CommentBlocks}) = 22.0
+Selectors.matcher(::Type{CommentBlocks}, node, page, doc) = iscode(node, r"^@comment")
+
+function Selectors.runner(::Type{CommentBlocks}, x, page, doc)
+    page.mapping[x] = Documents.RawHTML(COMMENT_TEMPLATE)
 end
