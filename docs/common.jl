@@ -147,3 +147,54 @@ Selectors.matcher(::Type{CommentBlocks}, node, page, doc) = iscode(node, r"^@com
 function Selectors.runner(::Type{CommentBlocks}, x, page, doc)
     page.mapping[x] = Documents.RawHTML(COMMENT_TEMPLATE)
 end
+
+#=
+```@embed https://github.com/findmyway/TianJun.jl/blob/ca409281346785f779fc88b770ee8a10f5d07ea2/LICENSE#L1-L21
+```
+=#
+
+using Markdown
+using URIs
+using Downloads
+
+abstract type EmbedBlocks <: ExpanderPipeline end
+Selectors.order(::Type{EmbedBlocks}) = 23.0
+Selectors.matcher(::Type{EmbedBlocks}, node, page, doc) = iscode(node, r"^@embed")
+
+function Selectors.runner(::Type{EmbedBlocks}, x, page, doc)
+    m = split(x.language)
+    if length(m) == 2
+        L = URI(m[2])
+        (user, repo, _, branch, filepath...) = URIs.splitpath(L)
+        lines = Downloads.download(
+            "$(L.scheme)://raw.githubusercontent.com/$user/$repo/$branch/$(join(filepath, '/'))";
+        ) |> readlines
+
+        m = match(r"L(?<start>\d+)(-L(?<end>\d+))?", L.fragment)
+        if isnothing(m)
+            s, e = 1, length(lines)
+        else
+            s, e = m[:start], m[:end]
+            s = isnothing(s) ? 1 : parse(Int, s)
+            e = isnothing(e) ? length(lines) : parse(Int, e)
+        end
+
+        lang = lstrip(splitext(filepath[end])[end], '.')
+        if lang == "jl"
+            lang = "julia"
+        end
+
+        page.mapping[x] = Documents.MultiOutput(
+            [
+                Markdown.Code(lang, join(lines[s:e], "\n")),
+                Documents.RawHTML("""
+                    <div class="code_snippet_title">
+                    ❤️
+                    Source: <a href="$(m[2])">$(filepath[end])</a>
+                    ❤️
+                    </div>
+                    """)
+            ]
+        )
+    end
+end
