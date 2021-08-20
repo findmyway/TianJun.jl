@@ -24,8 +24,28 @@
 - [微信](/assets/wechat.jpg),不怎么发朋友圈，没啥可看的。
 - [lichess](https://lichess.org/@/Jun_Tian)，有兴趣来一把？
 
+开源：
+
+- [ReinforcementLearning.jl](https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl)，最近一段时间的主要精力都花在了这上面。
+- [趣学Julia](https://learnjuliathefunway.com/)，前段时间刚开了个坑，还没来得及写点东西。
+- [Julia中文社区](https://discourse.juliacn.com/)，经常去上面回答问题。
+
+编程：
+
+- [Clojure](https://clojure.org/)，（曾经）最喜欢的编程语言。
+- [Julia](https://julialang.org/)，目前觉得最好用的语言。
+
 还有什么想知道的呢？🤔
 
 ## 关于本站
 
+这个网站我折腾过好几次，目前体会最深的一点是，**请用你最熟悉的工具**。
+
+我目前主要的业余时间都在写Julia，某种程度上讲，我对Julia的熟悉程度甚至超过了工作中所使用的其它编程语言。这也是为什么这一次将博客换成了基于Julia的一套构建流程。在Julia中，广泛使用的是一套是基于[Franklin.jl](https://franklinjl.org/)来构建博客，比如[Julia的官方博客](https://julialang.org/blog/)，不过综合考虑之后，我决定直接基于[Documenter.jl](https://github.com/JuliaDocs/Documenter.jl)来构建。一方面是我有选择恐惧症，面对各种各样的主题模板实在是不知道选哪个好，而自己从头写一个模板又没有那个时间精力了（虽然我之前确实写过一个[Distill](https://github.com/tlienart/DistillTemplate)的主题）；另一方面，我能力有限，实在是没有完全搞清楚`Franklin.jl`的代码是如何工作的，这让我在使用的过程中感觉很慌...... 相比之下，我对`Documenter.jl`比较熟悉，了解如何做一些个性化的定制。
+
+整个博客的发布流程基本和一个普通的julia安装包的文档发布流程一样，只不过我单独写了一些[自定义的插件](https://github.com/findmyway/TianJun.jl/blob/master/docs/common.jl)，所以，如果有人有兴趣构建一个和我类似的博客的话，只需要把这些插件复制粘贴到`make.jl`文件里即可。
+
 本站发表的内容默认遵循 [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)。
+
+```@comment
+```
