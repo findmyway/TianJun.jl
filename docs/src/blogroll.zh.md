@@ -22,3 +22,7 @@ create="2021-08-12"
 ## [Roger Luo](https://rogerluo.dev/)
 
 学习Julia语言过程中认识的，相当热心！
+
+## [pilgrim](https://pilgrimygy.github.io/)
+
+在写[ReinforcementLearning.jl](https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl)过程中认识的，非常有潜力的小伙~
