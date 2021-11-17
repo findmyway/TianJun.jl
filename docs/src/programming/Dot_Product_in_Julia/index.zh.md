@@ -1,6 +1,6 @@
 # 如何在Julia中计算点积?
 
-*"茴"字有几种写法?* 🤔
+*回字有几种写法?* 🤔
 
 ```@blog_meta
 last_update="2021-11-16"
@@ -83,7 +83,7 @@ BenchmarkTools.Trial: 2134 samples with 1 evaluation.
 
 呃， 耗时差不多是原来的9倍了。有点不可思议，那怎么优化下呢？ 先用 `@code_warntype` 看下：
 
-![](./code_warntype_dot_2_1.png)
+![](./code_warntype_dot2_1.png)
 
 注意到上面标红色的部分，这是提醒我们上面的实现中出现了类型不稳定的情况。主要原因是`res`在`dot2_1`函数中，初始化成了`Int64`类型的`0`，而我们的输入是两个`Vector{Float64}`类型的向量。了解这一点之后，可以把上面的实现写得更灵活一些：
 
@@ -287,7 +287,7 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
  Memory estimate: 17.45 KiB, allocs estimate: 249.
 ```
 
-### 版本5： GPU版
+## 版本5： GPU版
 
 如果你手上正好有块GPU，不妨试试看在GPU上做点积。Julia中的[CUDA.jl](https://github.com/JuliaGPU/CUDA.jl)极大地方便了Julia语言里的GPU编程，针对点积这样的常见操作，其提供了基于cuBLAS的封装，下面来试下：
 
@@ -317,6 +317,13 @@ julia> z = rand(Bool, N);
 julia> cx, cz = cu(x), cu(z);
 
 julia> @time dot(cx, cz)
+┌ Warning: Performing scalar indexing on task Task (runnable) @0x00007f63cc0c0010.
+│ Invocation of getindex resulted in scalar indexing of a GPU array.
+│ This is typically caused by calling an iterating implementation of a method.
+│ Such implementations *do not* execute on the GPU, but very slowly on the CPU,
+│ and therefore are only permitted from the REPL for prototyping purposes.
+│ If you did intend to index this array, annotate the caller with @allowscalar.
+└ @ GPUArrays ~/.julia/packages/GPUArrays/3sW6s/src/host/indexing.jl:56
  12.914170 seconds (6.29 M allocations: 1.000 GiB, 0.87% gc time)
 ```
 
@@ -363,7 +370,8 @@ true
 注意这里用的是`isapprox`来做比较。看起来我们得到的结果是正确的，那么其性能如何呢？
 
 ```julia
-julia> @benchmark CUDA.@sync dot5_1($(cu(rand(N))), $(cu(rand(Bool, N))))BenchmarkTools.Trial: 103 samples with 1 evaluation.
+julia> @benchmark CUDA.@sync dot5_1($(cu(rand(N))), $(cu(rand(Bool, N))))
+BenchmarkTools.Trial: 103 samples with 1 evaluation.
  Range (min … max):  48.510 ms …  54.895 ms  ┊ GC (min … max): 0.00% … 0.00%
  Time  (median):     48.514 ms               ┊ GC (median):    0.00%
  Time  (mean ± σ):   48.606 ms ± 657.494 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
@@ -417,7 +425,7 @@ function dot5_3(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
         for i in index:stride:length(x)
             @inbounds s += x[i] * y[i]
         end
-        CUDA.atomic_add!(pointer(res), s)
+        CUDA.@atomic res[] += s
         return nothing
     end
     k = @cuda launch=false kernel(x, y, res,T)
@@ -427,7 +435,7 @@ function dot5_3(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
 end
 ```
 
-同样，先确认计算的正确性：
+这里用了`CUDA.@atomic`来保证原子操作，同样，先确认计算的正确性：
 
 ```julia
 julia> isapprox(dot(cx, cz), dot5_3(cx, cz))
@@ -471,7 +479,7 @@ function dot5_4(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
         for i in start-1+index:thread_stride:stop
             @inbounds s += x[i] * y[i]
         end
-        CUDA.atomic_add!(pointer(res), s)
+        CUDA.@atomic res[] += s
         return nothing
     end
     k = @cuda launch=false kernel(x, y, res,T)
@@ -498,13 +506,13 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
  Memory estimate: 2.16 KiB, allocs estimate: 39.
 ```
 
-OK, 看起来稍微快了一些。需要注意的是，前面我们直接将每个thread计算的结果往一个`res`对象中通过加锁叠加上去了，不过其实可以先缓存起来，每个block的结果都计算出来之后，reduce之后再叠加到`res`中。
+OK, 看起来稍微快了一些。需要注意的是，前面我们直接将每个thread计算的结果往一个`res`对象中通过加锁叠加上去了，这样导致每个block中每个thread都会卡在原子操作那一步。
+一种优化方式是每个block的内部，先把各个thread的计算结果缓存起来，等一个block内所有thread都计算出来了同步一下，然后内部先reduce，最后再通过原子操作同步到最终的结果上。
 
 ```julia
 function dot5_5(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
     T = promote_type(T1, T2)
     res = CuArray{T}([zero(T)])
-    MAX_THREADS = 512
     function kernel(x, y, res, T)
         index = threadIdx().x
         thread_stride = blockDim().x
@@ -512,26 +520,28 @@ function dot5_5(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
         start = (blockIdx().x - 1) * block_stride + 1
         stop = blockIdx().x * block_stride
 
-        cache = @cuStaticSharedMem(T, (512#= MAX_THREADS =#,))
+        cache = CuDynamicSharedArray(T, (thread_stride,))
 
         for i in start-1+index:thread_stride:stop
             @inbounds cache[index] += x[i] * y[i]
         end
+
         sync_threads()
+
         if index == 1
             s = zero(T)
-            for i in 1:blockDim().x
-                @inbounds s += cache[i]
+            for i in 1:thread_stride
+                s += cache[i]
             end
-            CUDA.atomic_add!(pointer(res), s)
+            CUDA.@atomic res[] += s
         end
         return nothing
     end
     k = @cuda launch=false kernel(x, y, res,T)
-    config = launch_configuration(k.fun)
-    threads = min(length(x), config.threads, MAX_THREADS)
+    config = launch_configuration(k.fun; shmem=(threads) -> threads*sizeof(T))
+    threads = min(length(x), config.threads)
     blocks = config.blocks
-    k(x, y, res, T; threads=threads, blocks=config.blocks)
+    k(x, y, res, T; threads=threads, blocks=config.blocks, shmem=threads*sizeof(T))
     CUDA.@allowscalar res[]
 end
 ```
@@ -542,58 +552,59 @@ true
 
 julia> @benchmark CUDA.@sync dot5_5($(cu(rand(N))), $(cu(rand(Bool, N))))
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  22.976 μs … 100.464 μs  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     23.553 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   23.755 μs ±   1.294 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+ Range (min … max):  54.364 μs … 358.597 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     55.217 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   55.559 μs ±   4.023 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
 
-     ▁▆▇█▇▆▆▃▁                                                  
-  ▂▃▅██████████▆▅▄▄▄▅▄▄▃▄▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂ ▃
-  23 μs           Histogram: frequency by time           27 μs <
+     ▄▇█▇▅▃▂                                                    
+  ▂▄█████████▇▇▆▅▄▄▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▁▂ ▃
+  54.4 μs         Histogram: frequency by time         61.3 μs <
 
- Memory estimate: 2.16 KiB, allocs estimate: 39.
+ Memory estimate: 2.33 KiB, allocs estimate: 43.
 ```
 
-可以看到,其性能跟CUBLAS基本一致。当然，上面的代码还可以进一步优化，上面最后reduce的时候，只有index为1的线程在运行，其实可以多个线程一起工作：
+可以看到,其性能跟CUBLAS比较接近了。当然，上面的代码还可以进一步优化，上面最后reduce的时候，只有index为1的线程在运行，其实可以多个线程一起工作：
 
 ```julia
+using CUDA:i32
+
 function dot5_6(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
     T = promote_type(T1, T2)
     res = CuArray{T}([zero(T)])
-    MAX_THREADS = 512
     function kernel(x, y, res, T)
         index = threadIdx().x
         thread_stride = blockDim().x
-        block_stride = (length(x)-1) ÷ gridDim().x + 1
-        start = (blockIdx().x - 1) * block_stride + 1
+        block_stride = (length(x)-1i32) ÷ gridDim().x + 1i32
+        start = (blockIdx().x - 1i32) * block_stride + 1i32
         stop = blockIdx().x * block_stride
 
-        cache = @cuStaticSharedMem(T, (512#= MAX_THREADS =#,))
+        cache = CuDynamicSharedArray(T, (thread_stride,))
 
-        for i in start-1+index:thread_stride:stop
+        for i in start-1i32+index:thread_stride:stop
             @inbounds cache[index] += x[i] * y[i]
         end
         sync_threads()
 
         mid = thread_stride
         while true
-            mid = (mid - 1) ÷ 2 + 1
+            mid = (mid - 1i32) ÷ 2i32 + 1i32
             if index <= mid
                 @inbounds cache[index] += cache[index+mid]
             end
             sync_threads()
-            mid == 1 && break
+            mid == 1i32 && break
         end
 
-        if index == 1
-            CUDA.atomic_add!(pointer(res), cache[1])
+        if index == 1i32
+            CUDA.@atomic res[] += cache[1]
         end
         return nothing
     end
     k = @cuda launch=false kernel(x, y, res,T)
-    config = launch_configuration(k.fun)
-    threads = min(length(x), config.threads, MAX_THREADS)
+    config = launch_configuration(k.fun; shmem=(threads) -> threads*sizeof(T))
+    threads = min(length(x), config.threads)
     blocks = config.blocks
-    k(x, y, res, T; threads=threads, blocks=config.blocks)
+    k(x, y, res, T; threads=threads, blocks=config.blocks, shmem=threads*sizeof(T))
     CUDA.@allowscalar res[]
 end
 ```
@@ -615,9 +626,61 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
  Memory estimate: 2.16 KiB, allocs estimate: 39.
 ```
 
-看起来和上一个版本差别不大，毕竟最后的reduce并不是瓶颈。
+这样，最终的结果跟CUBLAS的性能基本一致了。
+
+从代码层面上讲，上面的代码还可以进一步简化下，上面的while循环其实是一个经典的reduce操作，而`CUDA.jl`中内置了一个函数`reduce_block`来简化该操作:
+
+```julia
+function dot5_7(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
+    T = promote_type(T1, T2)
+    res = CuArray{T}([zero(T)])
+    function kernel(x, y, res, T)
+        index = threadIdx().x
+        thread_stride = blockDim().x
+        block_stride = (length(x)-1i32) ÷ gridDim().x + 1i32
+        start = (blockIdx().x - 1i32) * block_stride + 1i32
+        stop = blockIdx().x * block_stride
+
+        local_val = zero(T)
+
+        for i in start-1i32+index:thread_stride:stop
+            @inbounds local_val += x[i] * y[i]
+        end
+
+        val = CUDA.reduce_block(+, local_val, zero(T), #=shuffle=# Val(true))
+        if threadIdx().x == 1i32
+            @inbounds CUDA.@atomic res[] += val
+        end
+        return
+    end
+    k = @cuda launch=false kernel(x, y, res,T)
+    config = launch_configuration(k.fun; shmem=(threads) -> threads*sizeof(T))
+    threads = min(length(x), config.threads)
+    blocks = config.blocks
+    k(x, y, res, T; threads=threads, blocks=config.blocks, shmem=threads*sizeof(T))
+    CUDA.@allowscalar res[]
+end
+```
+
+```julia
+julia> @benchmark CUDA.@sync dot5_7($(cu(rand(N))), $(cu(rand(Bool, N))))
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  23.674 μs … 252.995 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     25.095 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   25.911 μs ±   3.444 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+      ▁▇█▄▁  ▁                                                  
+  ▁▃▄▅█████▆▇██▇▅▄▃▂▂▂▂▂▁▂▁▁▁▁▁▁▁▁▁▁▁▂▂▂▂▃▃▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  23.7 μs         Histogram: frequency by time         33.2 μs <
+
+ Memory estimate: 2.33 KiB, allocs estimate: 43.
+```
 
 ## 参考
 
-- https://cuda.juliagpu.org/stable/tutorials/introduction/
-- https://www.nvidia.com/content/GTC-2010/pdfs/2131_GTC2010.pdf
+- [Introduction to CUDA.jl](https://cuda.juliagpu.org/stable/tutorials/introduction/)
+- [GTC-2010](https://www.nvidia.com/content/GTC-2010/pdfs/2131_GTC2010.pdf)
+- [CUDA.jl#1240](https://github.com/JuliaGPU/CUDA.jl/pull/1240)
+
+```@comment
+```

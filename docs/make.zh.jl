@@ -24,6 +24,9 @@ makedocs(
     build = BUILD_DIR,
     pages = [
         "👋 关于" => "index.md",
+        "💻 编程" => [
+            "如何在Julia中计算点积?" => "programming/Dot_Product_in_Julia/index.md"
+        ],
         "🔗 友链" => "blogroll.md",
         "🗃️ 存档" => [
             "20210812" => "essays/archive.md",
