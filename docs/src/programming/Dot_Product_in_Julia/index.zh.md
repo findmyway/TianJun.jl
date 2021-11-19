@@ -3,7 +3,7 @@
 *回字有几种写法?* 🤔
 
 ```@blog_meta
-last_update="2021-11-16"
+last_update="2021-11-19"
 create="2021-11-16"
 tags=["Julia", "CUDA", "GPU"]
 ```
@@ -202,6 +202,12 @@ BenchmarkTools.Trial: 3823 samples with 1 evaluation.
   1.23 ms        Histogram: frequency by time        1.46 ms <
 
  Memory estimate: 0 bytes, allocs estimate: 0.
+```
+
+或者，直接用 `mapreduce`:
+
+```julia
+mapreduce(*, +, x, y)
 ```
 
 ## 版本4： 多线程
@@ -628,52 +634,15 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
 
 这样，最终的结果跟CUBLAS的性能基本一致了。
 
-从代码层面上讲，上面的代码还可以进一步简化下，上面的while循环其实是一个经典的reduce操作，而`CUDA.jl`中内置了一个函数`reduce_block`来简化该操作:
+从代码层面上讲，上面的代码还可以进一步简化下，上面的while循环其实是一个经典的reduce操作，而`CUDA.jl`中内置了一个函数`reduce_block`来简化该操作，下面是简化后的核函数写法：
 
-```julia
-function dot5_7(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
-    T = promote_type(T1, T2)
-    res = CuArray{T}([zero(T)])
-    function kernel(x, y, res, T)
-        index = threadIdx().x
-        thread_stride = blockDim().x
-        block_stride = (length(x)-1i32) ÷ gridDim().x + 1i32
-        start = (blockIdx().x - 1i32) * block_stride + 1i32
-        stop = blockIdx().x * block_stride
-
-        local_val = zero(T)
-
-        for i in start-1i32+index:thread_stride:stop
-            @inbounds local_val += x[i] * y[i]
-        end
-
-        val = CUDA.reduce_block(+, local_val, zero(T), #=shuffle=# Val(true))
-        if threadIdx().x == 1i32
-            @inbounds CUDA.@atomic res[] += val
-        end
-        return
-    end
-    k = @cuda launch=false kernel(x, y, res,T)
-    config = launch_configuration(k.fun; shmem=(threads) -> threads*sizeof(T))
-    threads = min(length(x), config.threads)
-    blocks = config.blocks
-    k(x, y, res, T; threads=threads, blocks=config.blocks, shmem=threads*sizeof(T))
-    CUDA.@allowscalar res[]
-end
+```@embed https://github.com/JuliaGPU/CUDA.jl/blob/262c183b6f0480a105e0ca7761e43f435d9eb269/src/linalg.jl#L73-L90
 ```
 
+忘了说了，如果你还是one-line solution的爱好者，其实之前的CPU版本的写法在GPU上同样work哦~
+
 ```julia
-julia> @benchmark CUDA.@sync dot5_7($(cu(rand(N))), $(cu(rand(Bool, N))))
-BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  23.674 μs … 252.995 μs  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     25.095 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   25.911 μs ±   3.444 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
-
-      ▁▇█▄▁  ▁                                                  
-  ▁▃▄▅█████▆▇██▇▅▄▃▂▂▂▂▂▁▂▁▁▁▁▁▁▁▁▁▁▁▂▂▂▂▃▃▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-  23.7 μs         Histogram: frequency by time         33.2 μs <
-
- Memory estimate: 2.33 KiB, allocs estimate: 43.
+mapreduce((x,y)->dot(x, y), +, x, y)
 ```
 
 ## 参考
