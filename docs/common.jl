@@ -170,11 +170,11 @@ function Selectors.runner(::Type{EmbedBlocks}, x, page, doc)
             "$(L.scheme)://raw.githubusercontent.com/$user/$repo/$branch/$(join(filepath, '/'))";
         ) |> readlines
 
-        m = match(r"L(?<start>\d+)(-L(?<end>\d+))?", L.fragment)
+        match_res = match(r"L(?<start>\d+)(-L(?<end>\d+))?", L.fragment)
         if isnothing(m)
             s, e = 1, length(lines)
         else
-            s, e = m[:start], m[:end]
+            s, e = match_res[:start], match_res[:end]
             s = isnothing(s) ? 1 : parse(Int, s)
             e = isnothing(e) ? length(lines) : parse(Int, e)
         end
