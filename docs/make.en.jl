@@ -23,6 +23,9 @@ makedocs(
     build = BUILD_DIR,
     pages = [
         "👋 About" => "index.md",
+        "💻 Programming" => [
+            "A Deep Dive into Distributed.jl" => "programming/A_Deep_Dive_into_Distributed.jl/index.md"
+        ],
         "🔗 Blogroll" => "blogroll.md",
     ]
 )
