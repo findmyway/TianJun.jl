@@ -6,6 +6,11 @@ create="2021-08-20"
 tags=["Distributed Computing", "Julia"]
 ```
 
+```@inline slide/index.html 100% 50vh
+```
+
+[slide](slide/index.html)
+
 [Distributed.jl](https://docs.julialang.org/en/v1/stdlib/Distributed/) is a standard library in Julia to do multi-processing and distributed computing. The [distributed-computing](https://docs.julialang.org/en/v1/manual/distributed-computing/) section in the official julia docs already provides a nice introduction on how to use it. I assume most of you have skimmed through it. So here I'll mainly focus on how this package is designed and implemented, hoping that you'll have a better understanding after this talk.
 
 My talk will be organized in the Q&A style. So feel free to raise more questions in the end of this talk if anything is still unclear to you.

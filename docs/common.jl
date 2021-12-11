@@ -118,10 +118,15 @@ Selectors.matcher(::Type{InlineBlocks}, node, page, doc) = iscode(node, r"^@inli
 
 function Selectors.runner(::Type{InlineBlocks}, x, page, doc)
     m = split(x.language)
+    f, w, h = "", "100%", "100vh"
     if length(m) == 2
-        f = m[2]
-        page.mapping[x] = Documents.RawHTML("<iframe src=\"$f\"></iframe>")
+        _, f = m
+    elseif length(m) == 3
+        _, f, w = m
+    elseif length(m) == 4
+        _, f, w, h = m
     end
+    page.mapping[x] = Documents.RawHTML("<iframe src=\"$f\" style=\"width: $w;height: $h\"></iframe>")
 end
 
 #=

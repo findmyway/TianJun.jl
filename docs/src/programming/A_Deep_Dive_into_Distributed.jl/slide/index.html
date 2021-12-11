@@ -1,0 +1,526 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>A Deep Dive into Distributed.jl</title>
+
+    <link rel="stylesheet" href="/assets/revealjs/dist/reset.css">
+    <link rel="stylesheet" href="/assets/revealjs/dist/reveal.css">
+    <link rel="stylesheet" href="/assets/revealjs/dist/theme/black.css">
+
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="/assets/revealjs/plugin/highlight/monokai.css">
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section data-markdown>
+                <textarea data-template>
+# A Deep Dive into Distributed.jl
+
+Jun Tian
+
+2021-12-11
+
+---
+
+## Agenda
+
+1. How to initialize Distributed.jl? <!-- .element: class="fragment" data-fragment-index="1" -->
+2. How are the workers created?      <!-- .element: class="fragment" data-fragment-index="2" -->
+3. How do workers communicate?       <!-- .element: class="fragment" data-fragment-index="3" -->
+4. Is Distributed.jl perfect?        <!-- .element: class="fragment" data-fragment-index="4" -->
+
+---
+
+## Start Distributed.jl in CMD
+
+`julia -p auto`          <!-- .element: class="fragment" data-fragment-index="1" -->
+
+`julia -m machine-file`  <!-- .element: class="fragment" data-fragment-index="2" -->
+
+---
+
+`julia -p 3`
+
+```
+                         ┌─────────────┐
+                    ┌────► myid() == 2 │
+                    │    └─────────────┘
+ ┌─────────────┐    │
+ │ julia -p 3  │    │    ┌─────────────┐
+ │             ├────┼────► myid() == 3 │
+ │ myid() == 1 │    │    └─────────────┘
+ └─────────────┘    │
+                    │    ┌─────────────┐
+                    └────► myid() == 4 │
+                         └─────────────┘
+```
+
+---
+
+`julia -m machine-file`
+
+```
+2*127.0.0.1
+2*127.0.0.1
+```
+
+Remember that `Distributed.jl` is a std lib.
+
+---
+
+```
+                                             ┌─────────────┐
+                                          ┌──► myid() == 2 │
+                              ┌────────┐  │  └─────────────┘
+                           ┌──► Node 1 ├──┤
+                           │  └────────┘  │  ┌─────────────┐
+                           │              └──► myid() == 3 │
+                           │                 └─────────────┘
+ ┌──────────────────────┐  │
+ │ julia --machine-file │  │
+ │                      ├──┤
+ │     myid() == 1      │  │                 ┌─────────────┐
+ └──────────────────────┘  │              ┌──► myid() == 4 │
+                           │  ┌────────┐  │  └─────────────┘
+                           └──► Node 2 ├──┤
+                              └────────┘  │  ┌─────────────┐
+                                          └──► myid() == 5 │
+                                             └─────────────┘
+```
+
+---
+
+## Add workers dynamically
+
+```julia  [1|3-7|9-14]
+julia> using Distributed
+
+julia> addprocs(3)
+3-element Vector{Int64}:
+ 2
+ 3
+ 4
+
+julia> addprocs([("127.0.0.1", 2), ("127.0.0.1", 2)])
+4-element Vector{Int64}:
+ 5
+ 6
+ 7
+ 8
+```
+
+---
+
+### Q1: Why is there an extra processor created?
+
+> Communication in Julia is generally <span style="color :red; ">"one-sided" </span>, meaning that the programmer needs to explicitly manage only one process in a two-process operation.
+
+---
+
+## How are workers created?
+
+1. What happened after <span style="color :red; ">`using Distributed`</span>
+2. <span style="color :red; ">LocalManager</span>
+3. <span style="color :red; ">SSHManager</span>
+4. Write your own manager
+
+---
+
+```julia [5-7|9|17]
+module Distributed
+
+# ...
+
+function __init__()
+    init_parallel()
+end
+
+function init_parallel()
+    start_gc_msgs_task()
+
+    # start in "head node" mode, if worker, will override later.
+    global PGRP
+    global LPROC
+    LPROC.id = 1
+    @assert isempty(PGRP.workers)
+    register_worker(LPROC)
+end
+
+end
+```
+
+---
+
+```julai
+julia> using Distributed
+
+julia> workers()
+1-element Vector{Int64}:
+ 1
+```
+
+---
+
+When you try to add processors...
+
+```julia [3|13-16]
+function addprocs_locked(manager::ClusterManager; kwargs...)
+    # ...
+    t_launch = @async launch(manager, params, launched, launch_ntfy)
+
+    @sync begin
+        while true
+            if isempty(launched)
+                istaskdone(t_launch) && break
+                @async (sleep(1); notify(launch_ntfy))
+                wait(launch_ntfy)
+            end
+
+            if !isempty(launched)
+                wconfig = popfirst!(launched)
+                let wconfig=wconfig
+                    @async setup_launched_worker(manager, wconfig, launched_q)
+                end
+            end
+        end
+    end
+end
+```
+
+---
+Setup the worker
+
+```julia [2|4-8|10|12|14-16]
+function create_worker(manager, wconfig)
+	(r_s, w_s) = connect(manager, w.id, wconfig)
+
+    finalizer(w) do w
+        if myid() == 1
+            manage(w.manager, w.id, w.config, :finalize)
+        end
+    end
+
+	process_messages(w.r_stream, w.w_stream, false)
+
+    @async manage(w.manager, w.id, w.config, :register)
+
+	send_msg_now(w, MsgHeader(RRID(0,0), ntfy_oid), join_message)
+	# ...
+    wait(rr_ntfy_join)
+end
+```
+
+---
+
+LocalManager
+
+```julia [1|8]
+function launch(manager::LocalManager, params::Dict, launched::Array, c::Condition)
+    dir = params[:dir]
+    exename = params[:exename]
+    exeflags = params[:exeflags]
+    bind_to = manager.restrict ? `127.0.0.1` : `$(LPROC.bind_addr)`
+
+    for i in 1:manager.np
+        cmd = `$(julia_cmd(exename)) $exeflags --bind-to $bind_to --worker`
+        io = open(detach(setenv(cmd, dir=dir)), "r+")
+        write_cookie(io)
+
+        wconfig = WorkerConfig()
+        wconfig.process = io
+        wconfig.io = io.out
+        wconfig.enable_threaded_blas = params[:enable_threaded_blas]
+        push!(launched, wconfig)
+    end
+
+    notify(c)
+end
+```
+
+---
+
+julia --worker
+
+---
+
+The worker mode
+
+```julia [3|7|10]
+function exec_options(opts)
+	# ...
+    distributed_mode = (opts.worker == 1) || (opts.nprocs > 0) || (opts.machine_file != C_NULL)
+    if distributed_mode
+        let Distributed = require(PkgId(UUID((0x8ba89e20_285c_5b6f, 0x9357_94700520ee1b)), "Distributed"))
+            Core.eval(Main, :(const Distributed = $Distributed))
+            Core.eval(Main, :(using .Distributed))
+        end
+
+        invokelatest(Main.Distributed.process_opts, opts)
+    end
+	# ...
+end
+```
+
+---
+
+SSHManager
+
+```julia
+function launch_on_machine(manager::SSHManager, args...)
+	# ...
+    if cmdline_cookie
+        exeflags = `$exeflags --worker=$(cluster_cookie())`
+    else
+        exeflags = `$exeflags --worker`
+    end
+	# ...
+end
+```
+
+---
+
+Implement a customized manager
+
+- launch
+- manage
+
+---
+
+ElasticManager in ClusterManagers.jl
+
+```
+                                 ┌────────┐
+                               ┌─┤ worker │
+                               │ └────────┘
+      ┌─────────────┐ connect  │   ......
+      │ socket      │          │ ┌────────┐
+      │             │◄─────────┼─┤ worker │
+      │   - address │          │ └────────┘
+      │   - port    │          │ ......
+      └────▲───┬────┘          │ ┌────────┐
+           │   │               └─┤ worker │
+           │   │                 └────────┘
+           │   │
+           │   │ received new connection
+    watch  │   │
+  new conn │   │ check cookie
+           │   │
+           │   │ push into
+           │   │
+        ┌──┴───▼──┐
+        │ pending │
+        └────┬────┘
+             │
+             │
+             │
+        ┌────▼─────┐
+        │ addprocs │
+        └──────────┘
+```
+
+---
+
+## Take a break
+
+---
+
+## How do workers communicate?
+
+1. send_msg
+2. handle_msg
+
+---
+
+```
+                  ┌─────────────────────┐
+                  │     .........       │
+                  │ ┌─────────────────┐ │
+                  │ │ header          │ │
+                  │ │                 │ │
+               ┌──┼─►  * response_oid │ │
+               │  │ │  * notify_oid   │ │
+               │  │ └─────────────────┘ │
+               │  │                     │
+               │  │ ┌─────────────────┐ │
+ ┌──────────┐  │  │ │                 │ │    ┌────────────┐
+ │ send_msg ├──┼──┼─► builtin message ├─┼────► handle_msg │
+ └──────────┘  │  │ │                 │ │    └────────────┘
+               │  │ └─────────────────┘ │
+               │  │                     │
+               │  │ ┌─────────────────┐ │
+               └──┼─►     BOUNDARY    │ │
+                  │ └─────────────────┘ │
+                  │     .........       │
+                  └─────────────────────┘
+```
+
+---
+
+## Two key concepts
+
+- Remote reference
+- Remote call
+
+---
+
+## Remote Reference
+
+```julia [5-6|8|2]
+const REF_ID = Threads.Atomic{Int}(1)
+next_ref_id() = Threads.atomic_add!(REF_ID, 1)
+
+struct RRID
+    whence::Int
+    id::Int
+
+    RRID() = RRID(myid(), next_ref_id())
+    RRID(whence, id) = new(whence, id)
+end
+```
+
+---
+
+Future
+
+```julia [3-4|5|2|8]
+mutable struct Future <: AbstractRemoteRef
+    where::Int
+    whence::Int
+    id::Int
+    v::Union{Some{Any}, Nothing}
+
+    Future(w::Int, rrid::RRID, v::Union{Some, Nothing}=nothing) =
+        (r = new(w,rrid.whence,rrid.id,v); return test_existing_ref(r))
+
+    Future(t::NTuple{4, Any}) = new(t[1],t[2],t[3],t[4])  # Useful for creating dummy, zeroed-out instances
+end
+```
+
+```julia
+function test_existing_ref(r)
+	# ...
+	client_refs[r] = nothing
+    finalizer(finalize_ref, r)
+	# ...
+end
+```
+
+---
+
+The lifecycle of a Future
+```
+                              timeline
+
+                                  │
+ ┌─────────────────────────────┐  │  ┌───────────────────┐
+ │  worker 1                   │  │  │          worker 2 │
+ │                             │  │  │                   │
+ │       create remote call F ─┼──┼──┤► received F & R   │
+ │           and remote ref R  │  │  │                   │
+ │                             │  │  │  do calculation   │
+ │  do some other calculation  │  │  │                   │
+ │                             │  │  │  ......           │
+ │                     ......  │  │  │                   │
+ │                             │  │  │                   │
+ │  fetch reult from where(R) ─┼──┼──┤► wait F finish    │
+ │                             │  │  │                   │
+ │                             │  │  │  ......           │
+ │              waiting......  │  │  │                   │
+ │                            ◄├──┼──┼─ send back result │
+ │        remote value cached  │  │  │                   │
+ └─────────────────────────────┘  │  └───────────────────┘
+                                  ▼
+```
+---
+
+## Put them all together
+
+```julia [1|3|5-8|10|12]
+using Distributed
+
+addprocs(2)
+
+x = @spawnat 2 begin
+    sleep(3)
+    rand(3)
+end  # expr -> thunk -> CallMsg -> handle_msg
+
+print(x[])
+
+# Q2: Can we remove the random vector on worker 2 now?
+```
+
+---
+
+RemoteChannel
+
+```julia [3-4]
+mutable struct RemoteChannel{T<:AbstractChannel} <: AbstractRemoteRef
+    where::Int
+    whence::Int
+    id::Int
+	# ...
+end
+```
+
+The Key Difference compared to a Future:
+
+No need to deserialize a Channel <!-- .element: class="fragment" data-fragment-index="1" -->
+
+---
+
+## Worker Pools
+
+- WorkerPool
+- CachingPool
+---
+
+## Is Distributed.jl perfect?
+
+There's no perfect design. Only tradeoffs. <!-- .element: class="fragment" data-fragment-index="1" -->
+
+- Standard Library
+- HPC
+
+---
+
+# Other alternatives
+
+- Dagger.jl      <!-- .element: class="fragment" data-fragment-index="1" -->
+- Actors.jl      <!-- .element: class="fragment" data-fragment-index="2" -->
+- and Oolong.jl  <!-- .element: class="fragment" data-fragment-index="3" -->
+
+---
+
+# Thanks!
+
+## Q&A
+                </textarea>
+            </section>
+        </div>
+    </div>
+
+    <script src="/assets/revealjs/dist/reveal.js"></script>
+    <script src="/assets/revealjs/plugin/notes/notes.js"></script>
+    <script src="/assets/revealjs/plugin/markdown/markdown.js"></script>
+    <script src="/assets/revealjs/plugin/highlight/highlight.js"></script>
+    <script>
+        // More info about initialization & config:
+        // - https://revealjs.com/initialization/
+        // - https://revealjs.com/config/
+        Reveal.initialize({
+            hash: true,
+
+            // Learn about plugins: https://revealjs.com/plugins/
+            plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+        });
+    </script>
+</body>
+
+</html>
