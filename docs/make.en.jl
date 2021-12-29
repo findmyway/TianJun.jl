@@ -26,6 +26,9 @@ makedocs(
         "💻 Programming" => [
             "A Deep Dive into Distributed.jl" => "programming/A_Deep_Dive_into_Distributed.jl/index.md"
         ],
+        "📖 Reading" => [
+            "Notes on Distributional Reinforcement Learning" => "reading/Notes_on_Distributional_Reinforcement_Learning/index.md"
+        ],
         "🔗 Blogroll" => "blogroll.md",
     ]
 )
