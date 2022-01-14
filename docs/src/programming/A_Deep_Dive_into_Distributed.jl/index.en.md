@@ -311,3 +311,6 @@ With the knowledge above, now we know how the `Distributed.jl` works. But still 
 ## Is `Distributed.jl` perfect?
 
 Well, the standard answer is, there's no perfect design, only traceoffs. In my opinion, `Distributed.jl` is designed for HPC environments, where all the workers are quite stable. All the functionalities it provides are very fundamental and do not feature usability that much. On top of it, there's a [Dagger.jl](https://github.com/JuliaParallel/Dagger.jl) which is more usable for dynamic graph computing. And I'm also considering implementing a more flexible one. Stay tuned!
+
+```@comment
+```
