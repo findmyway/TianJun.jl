@@ -29,8 +29,9 @@ makedocs(
         "📖 Reading" => [
             "Notes on Distributional Reinforcement Learning" => "reading/Notes_on_Distributional_Reinforcement_Learning/index.md"
         ],
+        "🙋 Ask Me Anything" => "AMA.md",
         "🔗 Blogroll" => "blogroll.md",
     ]
 )
 
-cp(joinpath(@__DIR__, "CNAME"), joinpath(@__DIR__, BUILD_DIR, "CNAME");force=true)
+cp(joinpath(@__DIR__, "CNAME"), joinpath(@__DIR__, BUILD_DIR, "CNAME"); force = true)

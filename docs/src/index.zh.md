@@ -22,6 +22,7 @@
 
 - [Twitter](https://twitter.com/TianJun1991),偶尔上去逛逛。
 - [微信](/assets/wechat.jpg),不怎么发朋友圈，没啥可看的。
+- [豆瓣](https://www.douban.com/people/find_my_way/)，偶尔上去记录下。
 - [lichess](https://lichess.org/@/Jun_Tian)，有兴趣来一把？
 
 开源：
@@ -35,7 +36,7 @@
 - [Clojure](https://clojure.org/)，（曾经）最喜欢的编程语言。
 - [Julia](https://julialang.org/)，目前觉得最好用的语言。
 
-还有什么想知道的呢？🤔
+还有其它想知道的？欢迎来这里[🙋 提问](/AMA)。
 
 ## 关于本站
 
@@ -46,6 +47,3 @@
 整个博客的发布流程基本和一个普通的julia安装包的文档发布流程一样，只不过我单独写了一些[自定义的插件](https://github.com/findmyway/TianJun.jl/blob/master/docs/common.jl)，所以，如果有人有兴趣构建一个和我类似的博客的话，只需要把这些插件复制粘贴到`make.jl`文件里即可。
 
 本站发表的内容默认遵循 [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)。
-
-```@comment
-```

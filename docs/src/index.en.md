@@ -18,10 +18,9 @@ The original photo was taken in the summer of 2012 by my current wife. It was in
 Contact me:
 
 - [Twitter](https://twitter.com/TianJun1991)
-- [微信](/assets/wechat.jpg)
 - [lichess](https://lichess.org/@/Jun_Tian). I'm still learning and practicing.
 
-Feel free to drop a message if you want to know more about me. 🤔
+You can also [🙋 Ask Me Anything here](/AMA).
 
 ## About This Site
 
