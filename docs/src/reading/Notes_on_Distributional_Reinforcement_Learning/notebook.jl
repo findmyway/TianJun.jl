@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.17.5
+# v0.18.0
 
 using Markdown
 using InteractiveUtils
@@ -213,7 +213,7 @@ safe_policy = TabularPolicy(
 )
 
 # ╔═╡ b7580a82-3e5c-449f-80f2-be69712db36c
-map(i -> safe_policy(i), LinearInds)
+map(i -> ['←', '→', '↑', '↓'][safe_policy(i)], LinearInds)
 
 # ╔═╡ 476b82d9-f5f6-4a96-9351-e909f6408731
 quick_policy = TabularPolicy(
@@ -232,7 +232,7 @@ quick_policy = TabularPolicy(
 )
 
 # ╔═╡ e4eb00c0-0bb0-44b8-99f5-95b940c82d8f
-map(i -> quick_policy(i), LinearInds)
+map(i -> ['←', '→', '↑', '↓'][quick_policy(i)], LinearInds)
 
 # ╔═╡ e99571ee-1543-450b-b5a1-88a89a45d884
 quick_policy_hook = ComposedHook(
@@ -254,10 +254,138 @@ run(safe_policy, CliffWalkingEnv(), StopAfterEpisode(100_000), safe_policy_hook)
 
 # ╔═╡ a03ffe02-b0bb-4d82-83c3-4bb4fc27142c
 begin
+	# TODO: the length of the StepsPerEpisode should be the same with the number of episodes
 	quick_policy_kde = kde(0.99 .^ (quick_policy_hook[2].steps[1:end-1] .- 1) .* quick_policy_hook[1].rewards, bandwidth=0.02)
 	safe_policy_kde = kde(0.99 .^ (safe_policy_hook[2].steps[1:end-1] .- 1) .* safe_policy_hook[1].rewards, bandwidth=0.02)
 	plot(safe_policy_kde.x, safe_policy_kde.density, label="safe policy", legend=:topleft)
 	plot!(quick_policy_kde.x, quick_policy_kde.density, label="quick policy")
+end
+
+# ╔═╡ 99f45e88-9457-4a47-8095-1ed4762342e1
+md"""
+## Chapter 3
+
+The authors are very good at explaining concepts gradually. To be honest, I do not fully understand the projection step while implementing C51 in `ReinforcementLearning.jl`. After reading Chapter 3.5, now I have a much better understanding.
+
+> The purpose of the *projection* step is to transform an arbitrary target return g into a modiﬁed target taking one of $m$ values, for $m$ reasonably small. From a classiﬁcation perspective, we can think of the *projection* step as assigning a label (from a small set of categories) to each possible return.
+
+Especially pay attention to the following symbols:
+
+| Symbol | Meaning|
+|:-------:| :------:|
+| $g$ | Sample return|
+| $i^*(g)$ |The index of the largest element of the support that is no greater than $g$| 
+| $\Pi_{-}(g) = \theta_{i^*}$ | The corresponding element of the support|
+| $\Pi_{+}(g) = \theta_{i^*+1}$ | ... and its immediate successor|
+| $\zeta(g) = \frac{g - \Pi_{-}(g)}{\Pi_{+}(g) - \Pi_{-}(g)}$| The distance of $g$ to the two closest elements of the support|
+|$\Pi_{\pm}(g) = \begin{cases} \Pi_{-}(g) \quad \text{with probability} \ 1 - \zeta(g) \\  \Pi_{+}(g) \quad \text{with probability} \ \zeta(g) \\  \end{cases}$| The *stochastic projection* of $g$. Especially note the order of the probability|
+
+### Figure 3.2
+
+Now let's try to reproduce the **Figure 3.2**
+"""
+
+# ╔═╡ 0a9aa3fb-6b70-4dba-b27d-e4c9545c971c
+"""
+	 ctd(env, θ, π, α, P, γ, e)
+
+Algorithm 3.4: Online Categorical Temporal-Difference Learning
+
+- `env`: the environment
+- `θ`: supports
+- `π`: the policy
+- `α`: the learning rate
+- `P`: a tabular reward distribution estimator
+- `γ`: discount rate
+- `e`: the number of episodes
+"""
+function ctd(env, θ, π, α, P, γ, e)
+	for _ in 1:e
+		reset!(env)
+		while true
+			x = state(env)
+			a = π(x)
+			env(a)
+			r = reward(env)
+			x′ = state(env)
+			p = P[x]
+			p′ = P[x′]
+			p̂ = similar(p)
+			fill!(p̂, 0)
+			for j in 1:length(θ)
+				g = r + γ * θ[j]
+				if g ≤ θ[begin]
+					p̂[begin] += p′[j]
+				elseif g ≥ θ[end]
+					p̂[end] += p′[j]
+				else
+					local I # alias of $i^{*}$
+					for i in 1:length(θ)
+						if θ[i] ≤ g ≤ θ[i+1]
+							I = i
+							break
+						end
+					end
+					ζ = (g - θ[I])/(θ[I+1]-θ[I])
+					p̂[I] += (1-ζ) * p′[j]
+					p̂[I+1] += ζ * p′[j]
+				end
+			end
+			p .= (1-α) .* p .+ α .* p̂
+			is_terminated(env) && break
+		end
+	end
+end
+
+# ╔═╡ 4d23a8fe-f31a-4e2d-b53d-087568c5a554
+@bind N_EPISODE Select([0, 500, 2000, 10000, 50000])
+
+# ╔═╡ 3e4aaacc-16e9-4a8c-9356-d630a974da5a
+begin
+	P_uniform = Dict(
+		s => fill(1/31, 31)
+		for s in state_space(CliffWalkingEnv())
+	)
+	
+	ctd(
+		CliffWalkingEnv(),
+		range(-1.0, 1.0; length=31),
+		safe_policy,
+		0.1,
+		P_uniform,
+		0.99,
+		N_EPISODE
+	)
+	bar(
+		range(-1.0, 1.0; length=31),
+		P_uniform[state(CliffWalkingEnv())],
+		title="Uniform initial distribution")
+end
+
+# ╔═╡ fbd7d28b-8caf-481a-aebd-3666c73015a6
+begin
+	P_onehot = Dict(
+		s => begin
+			x = zeros(31)
+			x[16] = 1.0
+			x
+		end
+		for s in state_space(CliffWalkingEnv())
+	)
+	
+	ctd(
+		CliffWalkingEnv(),
+		range(-1.0, 1.0; length=31),
+		safe_policy,
+		0.1,
+		P_onehot,
+		0.99,
+		N_EPISODE
+	)
+	bar(
+		range(-1.0, 1.0; length=31),
+		P_onehot[state(CliffWalkingEnv())], 
+		title="Onehot initial distribution")
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1567,9 +1695,9 @@ version = "1.6.38+0"
 
 [[deps.libvorbis_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Ogg_jll", "Pkg"]
-git-tree-sha1 = "c45f4e40e7aafe9d086379e5578947ec8b95a8fb"
+git-tree-sha1 = "b910cb81ef3fe6e78bf6acee440bda86fd6ae00c"
 uuid = "f27f6e37-5d2b-51aa-960f-b287f2bc3b7a"
-version = "1.3.7+0"
+version = "1.3.7+1"
 
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -1635,5 +1763,10 @@ version = "0.9.1+5"
 # ╠═3017eb45-e96c-4713-bb14-c6e49e1cf32c
 # ╠═954cd93f-2c30-4826-944c-293deeba452e
 # ╠═a03ffe02-b0bb-4d82-83c3-4bb4fc27142c
+# ╟─99f45e88-9457-4a47-8095-1ed4762342e1
+# ╠═0a9aa3fb-6b70-4dba-b27d-e4c9545c971c
+# ╠═4d23a8fe-f31a-4e2d-b53d-087568c5a554
+# ╠═3e4aaacc-16e9-4a8c-9356-d630a974da5a
+# ╠═fbd7d28b-8caf-481a-aebd-3666c73015a6
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
