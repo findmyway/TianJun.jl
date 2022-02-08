@@ -388,6 +388,23 @@ begin
 		title="Onehot initial distribution")
 end
 
+# ╔═╡ 8e2e0a69-ec18-409e-a0aa-1001fbbeff1a
+md"""
+## Chapter 4
+
+I confess this chapter is not easy for me to understand. So I skipped most details here and I found it doesn't hinder me to understand the rest chapters.
+
+## Chapter 5
+
+This chapter mainly discussed several common representations of return distribution in practice.
+
+![](https://juntian.me/reading/Notes_on_Distributional_Reinforcement_Learning/img/distribution_representation.png)
+
+It is worth noting that,
+
+> The design and study of representations remains an active topic in distributional reinforce-ment learning. The representations we presented here are by no mean an exhaustive portraitof the ﬁeld. For example, Barth-Maron et al. (2018) considered using mixtures of m nor-mal distributions in domains with vector-valued action spaces...
+"""
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1768,5 +1785,6 @@ version = "0.9.1+5"
 # ╠═4d23a8fe-f31a-4e2d-b53d-087568c5a554
 # ╠═3e4aaacc-16e9-4a8c-9356-d630a974da5a
 # ╠═fbd7d28b-8caf-481a-aebd-3666c73015a6
+# ╟─8e2e0a69-ec18-409e-a0aa-1001fbbeff1a
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
