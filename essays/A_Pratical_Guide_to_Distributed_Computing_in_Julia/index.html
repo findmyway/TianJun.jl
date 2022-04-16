@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>一文读懂Julia中的并行计算 · Jun Tian</title><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>一文读懂Julia中的并行计算</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>一文读懂Julia中的并行计算</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/A_Pratical_Guide_to_Distributed_Computing_in_Julia/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: Julia,ParallelComputing CJKmainfont: KaiTi –-</p><h1 id="一文读懂Julia中的并行计算"><a class="docs-heading-anchor" href="#一文读懂Julia中的并行计算">一文读懂Julia中的并行计算</a><a id="一文读懂Julia中的并行计算-1"></a><a class="docs-heading-anchor-permalink" href="#一文读懂Julia中的并行计算" title="Permalink"></a></h1><p>最近阅读了Julia中的<a href="https://github.com/JuliaLang/julia/tree/master/stdlib/Distributed">Distributed</a>标准库，对Julia中的并行计算又多了一些思考。尽管官方文档中有一章详细介绍并行计算(<a href="https://docs.juliacn.com/latest/manual/parallel-computing/">中文</a>, <a href="https://docs.julialang.org/en/v1/manual/parallel-computing/">英文</a>)，我刚接触Julia的时候也写了一篇<a href="https://tianjun.me/essays/An_Introduction_to_Parallel_Computing_in_Julia_From_Bottom_Up">自底向上理解Julia中的并行计算</a>，不过总感觉讲得不够透彻。本文的目的是用一些实际的例子帮助大家深入理解Julia中的并行计算。</p><p>本文将包括以下内容：</p><ul><li>Task</li><li>Channel</li><li>RemoteChannel</li><li>ClusterManager</li></ul><p>本文<strong>不包括</strong>以下内容：</p><ul><li>XX问题应该选择哪种并行计算方式？</li></ul><h2 id="Task"><a class="docs-heading-anchor" href="#Task">Task</a><a id="Task-1"></a><a class="docs-heading-anchor-permalink" href="#Task" title="Permalink"></a></h2><p>通常我们并没有感知到究竟什么是Task，其实每次我们从命令行里输入<code>julia</code>，打开REPL界面之后，就进入了一个task中，通过<a href="https://docs.julialang.org/en/v1/base/parallel/#Base.current_task"><code>current_task</code></a>函数就可以获取到当前运行中的task对象：</p><pre><code class="language-julia hljs">julia&gt; t = current_task()
+Task (runnable) @0x00007f34ded89600</code></pre><p>可以看到，<code>t</code>的打印输出中，括号里提供了一个<strong>runnable</strong>信息，表明当前task <code>t</code> 是可执行的，除了<code>runnable</code>之外，task还有其它几个<a href="https://docs.julialang.org/en/v1.2-dev/manual/control-flow/#Task-states-1">状态</a>:</p><table><tr><th style="text-align: left">Symbol</th><th style="text-align: left">Meaning</th></tr><tr><td style="text-align: left"><code>:runnable</code></td><td style="text-align: left">Currently running, or able to run</td></tr><tr><td style="text-align: left"><code>:done</code></td><td style="text-align: left">Successfully finished executing</td></tr><tr><td style="text-align: left"><code>:failed</code></td><td style="text-align: left">Finished with an uncaught exception</td></tr></table><p>后面会介绍各个状态的具体含义，这里先留下个印象即可。这些状态存在<code>t.state</code>字段中：</p><pre><code class="language-julia hljs">julia&gt; t.state
+:runnable</code></pre><p>那什么是Task呢？一个task就是一段执行逻辑，可以直接通过<code>Task</code>来构造：</p><pre><code class="language-julia hljs">julia&gt; t_hi = Task(() -&gt; println(&quot;Hi&quot;))
+Task (runnable) @0x00007f34dec870d0
+
+julia&gt; t_hi.state
+:runnable</code></pre><p>这里<code>Task</code>可以接收一个lambda函数作为参数，构造一个新的task。此外还有一个<code>@task</code>宏，用来方便地将一段执行逻辑构造成一个task：</p><pre><code class="language-julia hljs">julia&gt; t_hello_world = @task begin
+              println(&quot;I&#39;m in a task!&quot;)
+              &quot;Hello World!&quot;
+              end
+Task (runnable) @0x00007f34dc84b0d0</code></pre><p>那么如何执行一个task呢？调用<code>schedule</code>即可：</p><pre><code class="language-julia hljs">julia&gt; schedule(t_hello_world)
+I&#39;m in a task!
+Task (runnable) @0x00007fb18f7eae10
+
+julia&gt; t_hello_world.state
+:done
+
+julia&gt; t_hello_world.result
+&quot;Hello World!&quot;</code></pre><p>可以看到，上面的task顺利执行完之后，状态就变成了<code>:done</code>，对应的执行结果保存在<code>t_hello_world.result</code>字段中。此外还有几个函数用于检查状态：</p><ul><li><code>istaskstarted</code></li><li><code>istaskdone</code></li><li><code>istaskfailed</code></li></ul><p>task中也可以报错，错误会保存在task 的<code>exception</code>字段中：</p><pre><code class="language-julia hljs">julia&gt; schedule(t_error)
+Task (failed) @0x0000000012aef0f0
+Oh no...
+error(::String) at .\error.jl:33
+(::getfield(Main, Symbol(&quot;##7#8&quot;)))() at .\task.jl:87
+
+julia&gt; t_error.state
+:failed
+
+julia&gt; t_error.result
+ErrorException(&quot;Oh no...&quot;)
+
+julia&gt; t_error.exception
+ErrorException(&quot;Oh no...&quot;)</code></pre><p>那么，<code>schedule</code>究竟做了什么呢？这里就涉及<code>task</code>的底层实现了。简单来讲，Julia 会给每个 thread 都生成一个队列，<code>schedule</code>所做的就是将该task按照一定规则（后面会再详细解释）加入到某个队列中。由于我们启动 Julia 的时候，并没有指定<code>JULIA_NUM_THREADS</code>环境变量，所以默认只有一个队列：</p><pre><code class="language-julia hljs">julia&gt; Base.Workqueues
+1-element Array{Base.InvasiveLinkedListSynchronized{Task},1}:
+ Base.InvasiveLinkedListSynchronized{Task}(Base.InvasiveLinkedList{Task}(nothing, nothing), Base.Threads.SpinLock(Base.Threads.Atomic{Int64}(0)))</code></pre><p>将task加入队列中之后，调度器会在空闲时，负责从队列中顺序取task并执行。</p><p>&lt;div class=&quot;alert alert-warning&quot;&gt; 需要指出的是，前面的例子中，似乎执行完<code>schedule(t_error)</code>之后，<code>t_error</code>就立即执行得到了结果。其实，这是因为我们是在REPL中分步执行的，执行完<code>schedule(t_error)</code>之后，REPL就进入了等待的过程，此时调度器空闲了，就会按照既定的规则从队列中取task并执行。可以用下面的例子来验证下。 &lt;/div&gt;</p><pre><code class="language-julia hljs">julia&gt; t = @task @info &quot;I&#39;m in task&quot;
+Task (runnable) @0x0000000012a802f0
+
+julia&gt; begin
+       schedule(t)
+       @info &quot;Hello&quot;
+       end
+[ Info: Hello
+[ Info: I&#39;m in task</code></pre><p>可以看到，<code>Hello</code>先打印了出来，然后 task <code>t</code> 接着就执行并打印 <code>I&#39;m in task</code>。</p><p>目前为止，我们了解了什么是task (WHAT), 如何使用task (HOW)，那为什么要使用task呢？ (WHY)</p><p>这就涉及到我们还没提到的一个task的特性，在一段task的执行逻辑之中，我们可以（显式地/隐式地）指定某些地方能被中断和恢复。直接执行<code>yield()</code>就相当于显式地告诉调度器，“把我放到队列里取，让队列里其它task有机会被执行”，当然，如果全局的task队列中没有<code>runnable</code>的task，那么就会立即继续执行接下来的其它代码。下面举个例子：</p><pre><code class="language-julia hljs">julia&gt; t1 = @task begin
+       @info &quot;begin task1&quot;
+       yield()
+       @info &quot;end task1&quot;
+       end
+Task (runnable) @0x00007f7542e7e850
+
+julia&gt; t2 = @task begin
+       @info &quot;begin task2&quot;
+       yield()
+       @info &quot;end task2&quot;
+       end
+Task (runnable) @0x00007f7542e7eb30
+
+julia&gt; begin
+       schedule(t1)
+       schedule(t2)
+       yield()
+       @info &quot;Current task running&quot;
+       end
+[ Info: begin task1
+[ Info: begin task2
+[ Info: Current task running
+[ Info: end task1
+[ Info: end task2</code></pre><p>这里先定义了两个task，每个task都是先打印begin信息，然后是执行<code>yield()</code>允许自己被中断，一旦被恢复后，再打印end信息。注意最后一个代码块，首先调度<code>t1</code>,然后调度<code>t2</code>,此时<code>t1</code>和<code>t2</code>都被加到了一个队列中，最后执行<code>yield()</code>把自己也加入到队列中，让调度器开始调度。从输出的顺序可以看出，<code>t1</code>先被执行，执行到<code>yield()</code>语句后，让出控制权，调度器从队列中选出<code>t2</code>执行，同样执行到<code>yield()</code>之后让出控制权，然后当前task被选中执行，此后<code>t1</code>再次被选中，执行结束，然后再执行<code>t2</code>，直至结束。</p><p>此外，<code>yield</code>还可以接收一个task作为参数，执行后会将该task放在队列的最前面被调度，比如，上面的例子中，试着将<code>t2</code>中的<code>yield()</code>改成<code>yield(t1)</code>，然后<code>schedule(t2)</code>试试？</p><p>那允许一段代码被中断的好处是什么呢？</p><p><strong>并发</strong></p><p>一个经典的例子是，在做网络请求的时候，会等待响应，若没有中断的机制，那么会一直阻塞，这样导致宝贵的计算资源在此期间白白浪费掉了。有了中断机制之后，在等待响应的过程中，可以主动切出去，让调度器有机会运行其它task，等获取到响应之后，再将自己放回到task队列中，等待被调度并执行。</p><p>TODO: Need a picture here</p><p>为了实现上述逻辑，Julia中提供了一个<code>Condition</code>对象，用来表示一类抽象的<strong>条件</strong>。task可以执行<code>wait(c::Condition)</code>，将自己挂载在该Condition下的链表末尾，并<code>yield()</code>出去，若Condition满足，则可以调用<code>notify(c::Condition)</code>，将挂载在该Condition的task链表上的task逆序添加到调度器的执行队列中，从而让其它task有机会被执行。</p><pre><code class="language-julia hljs">julia&gt; c = Condition()
+Condition(#undef, 0, 0)
+
+julia&gt; t1 = @task begin
+       @info &quot;task1 working...&quot;
+       wait(c)
+       @info &quot;condition satisfied&quot;
+       end
+Task (runnable) @0x00007f75412e45d0
+
+julia&gt; schedule(t1)
+[ Info: task1 working...
+Task (runnable) @0x00007f75412e45d0
+
+julia&gt; t1.state
+:runnable
+
+julia&gt; notify(c)
+[ Info: condition satisfied</code></pre><p>Julia中<a href="https://github.com/JuliaLang/julia/blob/v1.1.0/base/stream.jl#L44">stream</a>和<a href="https://github.com/JuliaLang/julia/blob/v1.1.0/base/event.jl#L341">Timer</a>相关的操作都采用类似机制实现的。</p><p>理解上面的这些概念之后，就可以做很多有意义的事情了。</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Saturday 16 April 2022 14:04">Saturday 16 April 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

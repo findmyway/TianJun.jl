@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>EM算法 · Jun Tian</title><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>EM算法</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>EM算法</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/The_EM_Algorithm/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: Algorithm CJKmainfont: KaiTi –-</p><h1 id="EM算法"><a class="docs-heading-anchor" href="#EM算法">EM算法</a><a id="EM算法-1"></a><a class="docs-heading-anchor-permalink" href="#EM算法" title="Permalink"></a></h1><p>偶然看到一篇<a href="http://www.nature.com/nbt/journal/v26/n8/full/nbt1406.html">文章</a>讲EM算法，感觉讲得很清晰。文中用到了一个抛硬币的问题，这里“搬运”过来，重新阐述下。</p><h2 id="问题"><a class="docs-heading-anchor" href="#问题">问题</a><a id="问题-1"></a><a class="docs-heading-anchor-permalink" href="#问题" title="Permalink"></a></h2><p>假设现在有两枚硬币，随机抛掷之后，正面朝上的概率分别设为<span>$\theta_A$</span>和<span>$\theta_B$</span>，然后我们做了5轮实验，每轮随机选一枚硬币（记为<span>$z_i$</span>），抛10次并记录结果（记为<span>$\boldsymbol{x}_i$</span>），现在我们希望估计出<span>$\theta_A$</span>和<span>$\theta_B$</span>的值。</p><h2 id="最大似然"><a class="docs-heading-anchor" href="#最大似然">最大似然</a><a id="最大似然-1"></a><a class="docs-heading-anchor-permalink" href="#最大似然" title="Permalink"></a></h2><p>假设<span>$z_i$</span>是已知的，那么只需最大化对数似然<span>$\log (x, z; \theta)$</span>即可，根据采样独立性假设，将log似然对<span>$\theta$</span>求导之后，可以得到<span>$\theta$</span>的点估计：</p>$<p>\begin{equation} \hat {\theta_A} = \frac {选择硬币A时正面朝上的次数} {选择硬币A的次数} \end{equation} $</p><h2 id="EM"><a class="docs-heading-anchor" href="#EM">EM</a><a id="EM-1"></a><a class="docs-heading-anchor-permalink" href="#EM" title="Permalink"></a></h2><p>假如隐变量<span>$z$</span>不可知，那么就无法通过上面的方法求解了。不过，我们可以先随机设置<span>$\theta$</span>的一组取值，然后根据观测数据<span>$\boldsymbol{x}$</span>“猜测”隐变量的分布<span>$z$</span>，再利用该隐变量的估计值和观测数据<span>$\boldsymbol{x}$</span>，按照前面最大似然的做法去计算<span>$\theta$</span>的值，如此迭代直至<span>$\theta$</span>收敛。</p><p>需要注意的是，这里“猜测”的是<span>$z$</span>的分布，而不是具体的某个值，联系到K-means算法中，通常的做法是将每个中心点做替换，这里相当于只是做“软分类”。</p><p>具体流程见原图：</p><p><img src="EM_introduction.gif" alt="An Introduction of EM Algorithm"/></p><p>下面我用Python代码将图中的流程复现下：</p><pre><code class="language-python hljs">import numpy as np
+from scipy.stats import binom
+
+observed = &quot;&quot;&quot;
+HTTTHHTHTH
+HHHHTHHHHH
+HTHHHHHTHH
+HTHTTTHHTT
+THHHTHHHTH&quot;&quot;&quot;
+
+x = np.array([[1 if c==&quot;H&quot; else 0 for c in line] for line in observed.strip().split()])
+x_heads = x.sum(axis=1)
+x_tails = 10 - x.sum(axis=1)
+assert np.all(x_heads == np.array([5,9,8,4,7]))
+
+def calc_z(theta):
+    za_est = binom.pmf(x_heads, 10, theta[0])
+    zb_est = binom.pmf(x_heads, 10, theta[1])
+    return za_est / (za_est + zb_est), zb_est / (za_est + zb_est)
+
+def calc_theta(z):
+    h_A = (x_heads * z[0]).sum()
+    t_A = (x_tails * z[0]).sum()
+    h_B = (x_heads * z[1]).sum()
+    t_B = (x_tails * z[1]).sum()
+    return h_A / (h_A + t_A), h_B / (h_B + t_B)    
+
+def is_nearly_same(theta_pre, theta_cur):
+    return np.abs(sum(theta_pre) - sum(theta_cur)) &lt; 1e-5
+
+theta_pre = [0.6, 0.5]
+
+for i in range(1000):
+    theta_cur = calc_theta(calc_z(theta_pre))
+    if is_nearly_same(theta_pre, theta_cur):
+        print i, theta_cur
+        break
+    else:
+        theta_pre = theta_cur
+# 11 (0.7967829009034072, 0.51959543422720311)</code></pre><p>显然，EM只能找到局部最优解，可以通过设置多个随机起始点来缓解这个问题，原文对这个问题有讨论。</p><p>此外，一点个人感受，这里随机初始点有点像先验，然后通过似然更新，得到一次后验估计（即先验和最大似然的中和），如此迭代，有意思。</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Saturday 16 April 2022 14:04">Saturday 16 April 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>用Julia实现读写锁 · Jun Tian</title><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>用Julia实现读写锁</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>用Julia实现读写锁</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/Implementing_Readers_Writer_Lock_in_Julia/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: Julia,Concurrency CJKmainfont: KaiTi –-</p><h1 id="用Julia实现读写锁"><a class="docs-heading-anchor" href="#用Julia实现读写锁">用Julia实现读写锁</a><a id="用Julia实现读写锁-1"></a><a class="docs-heading-anchor-permalink" href="#用Julia实现读写锁" title="Permalink"></a></h1><p>本文受<a href="https://eli.thegreenplace.net/2019/implementing-reader-writer-locks/">Implementing reader-writer locks</a>一文启发，采用Julia实现读写锁（原文用的是Golang）。</p><h2 id="为何需要读写锁"><a class="docs-heading-anchor" href="#为何需要读写锁">为何需要读写锁</a><a id="为何需要读写锁-1"></a><a class="docs-heading-anchor-permalink" href="#为何需要读写锁" title="Permalink"></a></h2><p>在多线程编程过程中，对于一些关键资源，需要对其加锁，以保证同一时刻只有一个线程在操作数据。不过在某些场景下，加锁带来的代价会比较大。如果只有一个互斥锁，那么当读取操作的次数远大于写入操作的次数时，由于每次读取都会对数据加锁，必然带来额外的开销。显然，如果多次读取操作之间没有写入操作，那么这段时间内其实时不需要对数据加锁的，于是乎，便有了读写锁专门用于提升此类场景下锁的效率。</p><p>接下来，我们将一步步实现高效的读写锁。</p><h2 id="MutexAsRWLock"><a class="docs-heading-anchor" href="#MutexAsRWLock">MutexAsRWLock</a><a id="MutexAsRWLock-1"></a><a class="docs-heading-anchor-permalink" href="#MutexAsRWLock" title="Permalink"></a></h2><p>先假设只有一把锁，看看其效率如何：</p><pre><code class="language-Julia hljs">struct MutexAsRWLock
+    m::Threads.Mutex
+    MutexAsRWLock() = new(Threads.Mutex())
+end
+
+read_lock(l::MutexAsRWLock) = lock(l.m)
+read_unlock(l::MutexAsRWLock) = unlock(l.m)
+write_lock(l::MutexAsRWLock) = lock(l.m)
+write_unlock(l::MutexAsRWLock) = unlock(l.m)</code></pre><p>然后用原文中提到的测试方法，测试下这种情况下，<code>read_lock</code>和<code>write_lock</code>获取锁的时间：</p><pre><code class="language-julia hljs">julia&gt; batch_test_rwlock(rwl, 1000, 10)
+(2.0248251801001482e-8, 1.9721886599999977e-8)</code></pre><h2 id="ReaderCountRWLock"><a class="docs-heading-anchor" href="#ReaderCountRWLock">ReaderCountRWLock</a><a id="ReaderCountRWLock-1"></a><a class="docs-heading-anchor-permalink" href="#ReaderCountRWLock" title="Permalink"></a></h2><p>接下来将其换成一种最简单的实现：读写锁共用一个互斥锁，不过，获取写锁时，如果当前已经有了读锁（count大于1），那么就将其释放掉，然后循环下去：</p><pre><code class="language-julia hljs">mutable struct ReaderCountRWLock
+    m::Threads.Mutex
+    reader_count::Int
+    ReaderCountRWLock() = new(Threads.Mutex(), 0)
+end
+
+function read_lock(l::ReaderCountRWLock)
+    lock(l.m) do
+    l.reader_count += 1
+    end
+end
+
+function read_unlock(l::ReaderCountRWLock)
+    lock(l.m) do
+        l.reader_count -= 1
+        if l.reader_count &lt; 0
+            error(&quot;reader count negative&quot;)
+        end
+    end
+end
+
+function write_lock(l::ReaderCountRWLock)
+    while true
+        lock(l.m)
+        if l.reader_count &gt; 0
+            unlock(l.m)
+        else
+            break
+        end
+    end
+end
+
+function write_unlock(l::ReaderCountRWLock)
+    unlock(l.m)
+end</code></pre><pre><code class="language-julia hljs">julia&gt; batch_test_rwlock(rwl, 1000, 10)
+(1.2749199800001581e-10, 4.536146970000002e-8)</code></pre><p>可以看到，读锁的时间大大降低了，但是写入锁的时间稍稍增加了一些。</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Saturday 16 April 2022 14:04">Saturday 16 April 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

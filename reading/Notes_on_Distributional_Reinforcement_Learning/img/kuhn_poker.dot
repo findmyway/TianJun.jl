@@ -1,0 +1,102 @@
+digraph {
+    root [label=""]
+    
+    
+    JQ [shape=square]
+    JK [shape=square]
+    QJ [shape=square]
+    QK [shape=square]
+    KJ [shape=square]
+    KQ [shape=square]
+    
+    {rank = same; JQ -> JK -> QJ -> QK -> KJ -> KQ [style=invis] }
+    
+    p1 [shape=triangle label=""]
+    p2 [shape=triangle label=""]
+    p3 [shape=triangle label=""]
+    p4 [shape=triangle label=""]
+    p5 [shape=triangle label=""]
+    p6 [shape=triangle label=""]
+    p7 [shape=triangle label=""]
+    p8 [shape=triangle label=""]
+    
+    {rank = same; p1 -> p2 -> p3 -> p4 -> p5 -> p6 -> p7 -> p8 [style=invis] }
+    
+    c1 [shape=square label=""]
+    c3 [shape=square label=""]
+    c4 [shape=square label=""]
+    c5 [shape=square label=""]
+    
+    n1_1 [shape=diamond label="-1"]
+    n1_2 [shape=diamond label="-1"]
+    n1_3 [shape=diamond label="-1"]
+    n1_4 [shape=diamond label="-1"]
+    n1_5 [shape=diamond label="-1"]
+    n1_6 [shape=diamond label="-1"]
+    n1_7 [shape=diamond label="-1"]
+    
+    n2_1 [shape=diamond label="-2"]
+    n2_2 [shape=diamond label="-2"]
+    n2_3 [shape=diamond label="-2"]
+    
+    p1_1 [shape=diamond label="+1"]
+    p1_2 [shape=diamond label="+1"]
+    p1_3 [shape=diamond label="+1"]
+    p1_4 [shape=diamond label="+1"]
+    p1_5 [shape=diamond label="+1"]
+    
+    p2_1 [shape=diamond label="+2"]
+    p2_2 [shape=diamond label="+2"]
+    p2_3 [shape=diamond label="+2"]
+    
+    root -> JQ [label="(1/6)"]
+    root -> JK [label="(1/6)"]
+    root -> QJ [label="(1/6)"]
+    root -> QK [label="(1/6)"]
+    root -> KJ [label="(1/6)"]
+    root -> KQ [label="(1/6)"]
+    
+    JQ -> p1 [label="check \n (2/3)"]
+    JQ -> p2 [label="raise \n (1/3)"]
+    JK -> p3 [label="check \n (2/3)"]
+    JK -> p4 [label="raise \n (1/3)"]
+    QJ -> p5 [label="check \n (1)"]
+    QK -> p6 [label="check \n (1)"]
+    KJ -> p7 [label="raise \n (1)"]
+    KQ -> p8 [label="raise \n (1)"]
+    
+    
+    p1 -> n1_1 [label="check \n (1/2)"]
+    p1 -> c1 [label="bet \n (1/2)"]
+    c1 -> n1_2 [label="fold \n (1)"]
+    
+    p2 -> p1_1 [label="fold \n (1/2)"]
+    p2 -> n2_1 [label="call \n (1/2)"]
+    
+    p3 -> n1_3 [label="check \n (1/2)"]
+    p3 -> c3 [label="bet \n (1/2)"]
+    c3 -> n1_4 [label="fold \n (1)"]
+    
+    p4 -> p1_5 [label="fold \n (1/2)"]
+    p4 -> n2_3 [label="call \n (1/2)"]
+    
+    p5 -> p1_2 [label="check \n (1/2)"]
+    p5 -> c4 [label="bet \n (1/2)"]
+    c4 -> n1_5 [label="fold \n (1/3)"]
+    c4 -> p2_1 [label="call \n (2/3)"]
+    
+    p6 -> n1_6 [label="check \n (1/2)"]
+    p6 -> c5 [label="bet \n (1/2)"]
+    c5 -> n1_7 [label="fold \n (1/3)"]
+    c5 -> n2_2 [label="call \n (2/3)"]
+    
+    p7 -> p1_3 [label="fold \n (1/2)"]
+    p7 -> p2_2 [label="call \n (1/2)"]
+    
+    p8 -> p1_4 [label="fold \n (1/2)"]
+    p8 -> p2_3 [label="call \n (1/2)"]
+    
+    
+    {rank = same; n1_1 -> c1 -> p1_1 -> n2_1 ->  n1_3 -> c3 -> p1_5 -> n2_3 -> p1_2 -> c4 -> n1_6 -> c5 -> p1_3 -> p2_2 -> p1_4 -> p2_3 [style=invis] }
+
+}
