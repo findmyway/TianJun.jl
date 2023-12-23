@@ -19,7 +19,7 @@ makedocs(
         ]
     ),
     sitename = "Jun Tian",
-    linkcheck = haskey(ENV, "CI"),
+    warnonly=[:linkcheck, :cross_references],
     build = BUILD_DIR,
     pages = [
         "👋 About" => "index.md",
