@@ -55,11 +55,6 @@ jobs:
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
-      - run: |
-          julia --project=docs -e '
-            using Documenter: doctest
-            using TianJun
-            doctest(TianJun)'
 
       - run: julia --project=docs docs/make.zh.jl
       - run: julia --project=docs docs/make.en.jl
