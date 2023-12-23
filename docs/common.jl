@@ -59,7 +59,6 @@ function blog_meta(;
             label= "#",
             message=t,
             color="#0F80C1",
-            rightLink="/search/?q=$t"
         ) |> Badges.render
     end
 
