@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Categorical Sampling on GPU with Julia · Jun Tian</title><meta name="title" content="Categorical Sampling on GPU with Julia · Jun Tian"/><meta property="og:title" content="Categorical Sampling on GPU with Julia · Jun Tian"/><meta property="twitter:title" content="Categorical Sampling on GPU with Julia · Jun Tian"/><meta name="description" content="Documentation for Jun Tian."/><meta property="og:description" content="Documentation for Jun Tian."/><meta property="twitter:description" content="Documentation for Jun Tian."/><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Categorical Sampling on GPU with Julia</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Categorical Sampling on GPU with Julia</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/Categorical_Sampling_on_GPU_with_Julia/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: Julia,GPU,Sampling CJKmainfont: KaiTi –-</p><h1 id="Categorical-Sampling-on-GPU-with-Julia"><a class="docs-heading-anchor" href="#Categorical-Sampling-on-GPU-with-Julia">Categorical Sampling on GPU with Julia</a><a id="Categorical-Sampling-on-GPU-with-Julia-1"></a><a class="docs-heading-anchor-permalink" href="#Categorical-Sampling-on-GPU-with-Julia" title="Permalink"></a></h1><p>A great blog post has discussed this topic in detail: <a href="http://www.keithschwarz.com/darts-dice-coins/">http://www.keithschwarz.com/darts-dice-coins/</a>. I strongly suggest you read through it first.</p><p>Sampling from a <a href="https://en.wikipedia.org/wiki/Categorical_distribution">categorical distribution</a> is very straight forward in Julia. In <a href="https://github.com/JuliaStats/Distributions.jl/blob/master/src/samplers/categorical.jl">Distributions.jl</a>, there&#39;s a <a href="https://github.com/JuliaStats/Distributions.jl/blob/master/src/samplers/categorical.jl#L18-L28">naive sampling implementation</a>. As the name indicates, the implementation is very simple:</p><pre><code class="language-julia hljs">function rand(rng::AbstractRNG, s::CategoricalDirectSampler)
+    p = s.prob
+    n = length(p)
+    i = 1
+    c = p[1]
+    u = rand(rng)
+    while c &lt; u &amp;&amp; i &lt; n
+        c += p[i += 1]
+    end
+    return i
+end</code></pre><p>I usually use it as a warm-up interview question :smile:.</p><p>In <a href="https://github.com/JuliaStats/StatsBase.jl/blob/master/src/sampling.jl">StatsBase.jl</a>, there are many more efficient implementations for both with or without replacement. The <a href="https://github.com/JuliaStats/StatsBase.jl/blob/master/src/sampling.jl#L319">`sample!</a> method in StatsBase.jl is smart enough to select an appropriate one according to the distribution.</p><p>Among those implementations, I&#39;m more interested in the <a href="https://github.com/JuliaStats/StatsBase.jl/blob/master/src/sampling.jl#L526"><code>alias_sample!</code></a>. As the documentation says, the alias sampling method takes <span>$O(n \log n)$</span> for building the alias table (here <span>$n$</span> is the length of distribution), and then <span>$O(1)$</span> to draw each sample (consume 2 random numbers each time). This character makes it very suitable for some large scale simulations.</p><p>Next, we want to accelerate the alias sampling method further with GPU. Let&#39;s take a close look at the <a href="https://github.com/JuliaStats/StatsBase.jl/blob/master/src/sampling.jl#L526-L542">implementation</a> in StatsBase.jl first:</p><pre><code class="language-julia hljs">function alias_sample!(rng::AbstractRNG, a::AbstractArray, wv::AbstractWeights, x::AbstractArray)
+    n = length(a)
+    length(wv) == n || throw(DimensionMismatch(&quot;Inconsistent lengths.&quot;))
+
+    # create alias table
+    ap = Vector{Float64}(undef, n)
+    alias = Vector{Int}(undef, n)
+    make_alias_table!(values(wv), sum(wv), ap, alias)
+
+    # sampling
+    s = RangeGenerator(1:n)
+    for i = 1:length(x)
+        j = rand(rng, s)
+        x[i] = rand(rng) &lt; ap[j] ? a[j] : a[alias[j]]
+    end
+    return x
+end</code></pre><p>Here the <code>AbstractWeights</code> is just a wrapper of a weighted vector with the sum pre-calculated. There&#39;re mainly two steps:</p><ol><li>Create alias table</li><li>Sampling</li></ol><p>To enable GPU acceleration, we can first generate the alias table on the CPU and then send it to the GPU. Then write a kernel on GPU to perform the sampling step.</p><p>The <code>make_alias_table!</code> function below is directly taken from <a href="https://github.com/JuliaStats/StatsBase.jl/blob/master/src/sampling.jl#L454-L511">StatsBase.jl</a> with a small modification to make it compatible with <code>Float32</code>.</p><pre><code class="language-julia hljs">function make_alias_table!(w::AbstractVector{T}, wsum::S,
+                           a::AbstractVector{T},
+                           alias::AbstractVector{&lt;:Integer}) where {S, T}
+    n = length(w)
+    length(a) == length(alias) == n ||
+        throw(DimensionMismatch(&quot;Inconsistent array lengths.&quot;))
+
+    ac = n / wsum
+    for i = 1:n
+        @inbounds a[i] = w[i] * ac
+    end
+
+    larges = Vector{Int}(undef, n)
+    smalls = Vector{Int}(undef, n)
+    kl = 0  # actual number of larges
+    ks = 0  # actual number of smalls
+
+    for i = 1:n
+        @inbounds ai = a[i]
+        if ai &gt; 1.0
+            larges[kl+=1] = i  # push to larges
+        elseif ai &lt; 1.0
+            smalls[ks+=1] = i  # push to smalls
+        end
+    end
+
+    while kl &gt; 0 &amp;&amp; ks &gt; 0
+        s = smalls[ks]; ks -= 1  # pop from smalls
+        l = larges[kl]; kl -= 1  # pop from larges
+        @inbounds alias[s] = l
+        @inbounds al = a[l] = (a[l] - 1.0) + a[s]
+        if al &gt; 1.0
+            larges[kl+=1] = l  # push to larges
+        else
+            smalls[ks+=1] = l  # push to smalls
+        end
+    end
+
+    # this loop should be redundant, except for rounding
+    for i = 1:ks
+        @inbounds a[smalls[i]] = 1.0
+    end
+    nothing
+end</code></pre><p>The next step is to perform sampling on GPU:</p><pre><code class="language-julia hljs">function cu_alias_sample!(a::GPUArray{Ta}, wv::AbstractVector{Tw}, x::GPUArray{Ta}) where {Tw&lt;:Number, Ta}
+    length(a) == length(wv) || throw(DimensionMismatch(&quot;weight vector must have the same length with label vector&quot;))
+    n = length(wv)
+    # create alias table
+    ap = Vector{Tw}(undef, n)
+    alias = Vector{Int64}(undef, n)
+    make_alias_table!(wv, sum(wv), ap, alias)
+    
+    # to device
+    alias = CuArray{Int64}(alias)
+    ap = CuArray{Tw}(ap)
+    
+    function kernel(state, alias, ap, x, a, randstate)
+        r1, r2 = GPUArrays.gpu_rand(Float32, state, randstate), GPUArrays.gpu_rand(Float32, state, randstate)
+        r1 = r1 == 1.0 ? 0.0 : r1
+        r2 = r2 == 1.0 ? 0.0 : r2
+        i = linear_index(state)
+        if i &lt;= length(x)
+            j = floor(Int, r1 * n) + 1
+            @inbounds x[i] = r2 &lt; ap[j] ? a[j] : a[alias[j]]
+        end
+        return
+    end
+    gpu_call(kernel, x, (alias, ap, x, a, GPUArrays.global_rng(x).state))
+    x
+end</code></pre><p>&lt;div class=&quot;alert alert-warning&quot;&gt; Especially take care of the 15~16 lines of the code above. By doing so it will avoid bound error in some extreme cases. &lt;/div&gt;</p><p>Now let&#39;s check the performance:</p><p>The result with GPU:</p><pre><code class="language-julia hljs">
+N, K = 10, 10^5
+
+wv = rand(Float32, N)
+a = CuArray{Int64}(1:N)
+x = CuArray{Int64}(zeros(Int64, K));
+
+@benchmark cu_alias_sample!($a,$wv, $x)
+
+# BenchmarkTools.Trial: 
+#   memory estimate:  5.22 KiB
+#   allocs estimate:  124
+#   --------------
+#   minimum time:     77.197 μs (0.00% GC)
+#   median time:      102.396 μs (0.00% GC)
+#   mean time:        107.162 μs (1.07% GC)
+#   maximum time:     18.155 ms (30.20% GC)
+#   --------------
+#   samples:          10000
+#   evals/sample:     1</code></pre><p>The result with CPU:</p><pre><code class="language-julia hljs">wv = weights(rand(Float64, N))
+da = 1:N
+dx = zeros(Int64, K)
+@benchmark StatsBase.alias_sample!(Random.GLOBAL_RNG, $da,$wv, $dx)
+
+# BenchmarkTools.Trial: 
+#   memory estimate:  640 bytes
+#   allocs estimate:  4
+#   --------------
+#   minimum time:     2.195 ms (0.00% GC)
+#   median time:      2.233 ms (0.00% GC)
+#   mean time:        2.240 ms (0.00% GC)
+#   maximum time:     3.434 ms (0.00% GC)
+#   --------------
+#   samples:          2230
+#   evals/sample:     1</code></pre><p>About 20 times faster!</p><p>As you can see, in Julia we can easily leverage some existing code on CPU and port them to GPU without much effort!</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 23 December 2023 15:51">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

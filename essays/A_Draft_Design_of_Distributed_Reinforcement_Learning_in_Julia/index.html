@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>A Draft Design of Distributed Reinforcement Learning in Julia · Jun Tian</title><meta name="title" content="A Draft Design of Distributed Reinforcement Learning in Julia · Jun Tian"/><meta property="og:title" content="A Draft Design of Distributed Reinforcement Learning in Julia · Jun Tian"/><meta property="twitter:title" content="A Draft Design of Distributed Reinforcement Learning in Julia · Jun Tian"/><meta name="description" content="Documentation for Jun Tian."/><meta property="og:description" content="Documentation for Jun Tian."/><meta property="twitter:description" content="Documentation for Jun Tian."/><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>A Draft Design of Distributed Reinforcement Learning in Julia</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>A Draft Design of Distributed Reinforcement Learning in Julia</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/A_Draft_Design_of_Distributed_Reinforcement_Learning_in_Julia/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: Design,Julia CJKmainfont: KaiTi –-</p><h1 id="A-Draft-Design-of-Distributed-Reinforcement-Learning-in-Julia"><a class="docs-heading-anchor" href="#A-Draft-Design-of-Distributed-Reinforcement-Learning-in-Julia">A Draft Design of Distributed Reinforcement Learning in Julia</a><a id="A-Draft-Design-of-Distributed-Reinforcement-Learning-in-Julia-1"></a><a class="docs-heading-anchor-permalink" href="#A-Draft-Design-of-Distributed-Reinforcement-Learning-in-Julia" title="Permalink"></a></h1><p>I&#39;ve been thinking for a while about how to design a distributed reinforcement learning package in Julia. Recently I read through the source code of some packages again, including:</p><ul><li><a href="https://github.com/ray-project/ray">Ray/rllib</a></li><li><a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl">ReinforcementLearning.jl</a></li><li><a href="https://github.com/google/dopamine">Dopamine</a></li><li><a href="https://github.com/deepmind/trfl">trfl</a></li><li><a href="https://github.com/ShangtongZhang/DeepRL">DeepRL</a></li></ul><p>and some other resources included <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl/wiki/Roadmap">here</a> by <a href="https://github.com/JobJob">Joel</a>. Although I still don&#39;t have a very clear design, I would like to write down my thoughts here in case they are useful for someone else.</p><p>The abstractions for reinforcement learning in rllib are quite straightforward. You may refer <a href="http://proceedings.mlr.press/v80/liang18b.html">RLlib: Abstractions for Distributed Reinforcement Learning</a> for what I&#39;m talking in the next.</p><ol><li>BaseEnv</li><li>Policy Graph</li><li>Policy Evaluation</li><li>Policy Optimizer</li><li>Agent</li></ol><p>It has been demonstrated that by using the concepts above most of the popular reinforcement learning algorithms can be implemented in rllib. However, it&#39;s not that easy to port those concepts directly into Julia. One of the most important reason is that we don&#39;t have an existing foundamental package like Ray. And the infrastructure of parallel programming in Julia is quite different. In the next section, I will try to adapt those concepts in Julia and describe how to implement some typical algorithms in the very high level.</p><h2 id="Actors-Actors-Actors"><a class="docs-heading-anchor" href="#Actors-Actors-Actors">Actors Actors Actors</a><a id="Actors-Actors-Actors-1"></a><a class="docs-heading-anchor-permalink" href="#Actors-Actors-Actors" title="Permalink"></a></h2><h3 id="Environment"><a class="docs-heading-anchor" href="#Environment">Environment</a><a id="Environment-1"></a><a class="docs-heading-anchor-permalink" href="#Environment" title="Permalink"></a></h3><p>Let&#39;s start from the environments part first. Environments in RL are relatively independent. By treating all environments asynchronously, rllib shows that it would be very convenient to introduce new environments. So here we also treat environments as actors running asynchronously.</p><p>First, we introduce the concept of <code>AbstractEnv</code>.</p><pre><code class="language-julia hljs">abstract type AbstractEnv end
+
+function interact!(env, actions...) end
+function observe(env, role) end
+function reset!(env) end</code></pre><p>Then we can wrap it into an actor</p><pre><code class="language-julia hljs">env_actor = @actor begin
+    env = ExampleEnv(init_configs)
+    while true
+        sender, msg = receive()
+        @match msg
+            (:interact!, actions) =&gt; interact!(env, actions)
+            (:observe, role) =&gt; tell(sender, observe(env, role))
+            (:reset!,) =&gt; reset!(env)
+            # do something else
+            (:ping,) =&gt; tell(sender, :pong)
+        end
+    end
+end
+
+# The code above can be further simplified by introducing an `@wrap_actor` macro
+env_actors = @wrap_actor ExampleEnv(init_configs)</code></pre><h3 id="Policy"><a class="docs-heading-anchor" href="#Policy">Policy</a><a id="Policy-1"></a><a class="docs-heading-anchor-permalink" href="#Policy" title="Permalink"></a></h3><p>In the next, we can have a <code>PolicyGraph</code> object like the one in rllib:</p><pre><code class="language-julia hljs">abstract type AbstractPolicy end
+
+function act(pg, obs) end
+function learn(pg, batch) end
+function set_weights(pg, weight) end
+function get_weights(pg) end</code></pre><h3 id="Evaluator"><a class="docs-heading-anchor" href="#Evaluator">Evaluator</a><a id="Evaluator-1"></a><a class="docs-heading-anchor-permalink" href="#Evaluator" title="Permalink"></a></h3><p>An evaluator will combine Policy and Environment together.</p><pre><code class="language-julia hljs">abstract type AbstractEvaluator end
+
+struct ExampleEvaluator &lt;: AbstractEvaluator
+    env_actor
+    policy
+    #...
+    ExampleEvaluator(env, policy, params..) = new(@wrap_actor env, policy, params...)
+end
+
+function sample(ev::Evaluator) end</code></pre><p>Again, we can wrap it into an actor.</p><pre><code class="language-julia hljs">ev_actor = @wrap_actor ExampleEvaluator(env, policy, params)</code></pre><p>When the <code>ev_actor</code> is invoked, a environment actor will also be invoked (in the same processor by default)</p><h3 id="Optimizer"><a class="docs-heading-anchor" href="#Optimizer">Optimizer</a><a id="Optimizer-1"></a><a class="docs-heading-anchor-permalink" href="#Optimizer" title="Permalink"></a></h3><p>An optimizer will interact with evaluators and do something like parameter updating and distributed sampling.</p><h3 id="Demo"><a class="docs-heading-anchor" href="#Demo">Demo</a><a id="Demo-1"></a><a class="docs-heading-anchor-permalink" href="#Demo" title="Permalink"></a></h3><p>Putting all components together. We have the following graph to show how each component is working in the Ape-X algorithm.</p><p>TODO: Add figure</p><p>And the pseudocode is:</p><pre><code class="language-julia hljs"># 1. create environments
+env_actors = @wrap_actor CartPoleEnv(configs)
+
+# 2. create policies
+policy = DQNPolicy(configs)
+
+# 3. define evaluators
+mutable struct ApeXEvaluator
+    env_actor
+    policy
+    batch_size
+    n_samples
+    replay_buffer
+end
+
+function sample(ev::ApeXEvaluator)
+    while true
+        if ev.n_samples &gt;= ev.batch_size
+            return sample(replay_buffer, evn.batch_size)
+        else
+            r, d, s = @await observe(ev.env_actor)  # it will be translated into send/receive
+            a = ev.policy_actor(s)  # it will be translated into send/receive
+            # update replay_buffer
+            # calc loss
+            # update grad
+        end
+    end
+end
+
+ev_actors = @smart_actors ApeXEvaluator env_actors policy_actors
+
+# 4. optimizer
+mutable struct ApeXOptimizer
+    local_ev
+    remote_evs
+end
+
+function step(optimizer::ApeXOptimizer)
+    samples = @await get_high_priority_samples(optimizer.remote_evs)
+    # evaluate local_env
+    # broadcast local_weights
+    # update priority of replay buffer
+end</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 23 December 2023 15:51">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

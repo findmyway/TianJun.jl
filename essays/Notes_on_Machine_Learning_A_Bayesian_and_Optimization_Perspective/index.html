@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Machine Learning A Bayesian and Optimization Perspective 读书笔记 · Jun Tian</title><meta name="title" content="Machine Learning A Bayesian and Optimization Perspective 读书笔记 · Jun Tian"/><meta property="og:title" content="Machine Learning A Bayesian and Optimization Perspective 读书笔记 · Jun Tian"/><meta property="twitter:title" content="Machine Learning A Bayesian and Optimization Perspective 读书笔记 · Jun Tian"/><meta name="description" content="Documentation for Jun Tian."/><meta property="og:description" content="Documentation for Jun Tian."/><meta property="twitter:description" content="Documentation for Jun Tian."/><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Machine Learning A Bayesian and Optimization Perspective 读书笔记</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Machine Learning A Bayesian and Optimization Perspective 读书笔记</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/Notes_on_Machine_Learning_A_Bayesian_and_Optimization_Perspective/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: Book,MachineLearning CJKmainfont: KaiTi –-</p><h1 id="Machine-Learning-A-Bayesian-and-Optimization-Perspective-读书笔记"><a class="docs-heading-anchor" href="#Machine-Learning-A-Bayesian-and-Optimization-Perspective-读书笔记">Machine Learning A Bayesian and Optimization Perspective 读书笔记</a><a id="Machine-Learning-A-Bayesian-and-Optimization-Perspective-读书笔记-1"></a><a class="docs-heading-anchor-permalink" href="#Machine-Learning-A-Bayesian-and-Optimization-Perspective-读书笔记" title="Permalink"></a></h1><p>个人感觉这本书的覆盖面有点广，更适合有一定基础之后在回过头来读。暂时先看完了2，3，4章，打个卡，后面有机会再继续读这本书。</p><h2 id="CH02"><a class="docs-heading-anchor" href="#CH02">CH02</a><a id="CH02-1"></a><a class="docs-heading-anchor-permalink" href="#CH02" title="Permalink"></a></h2><p>这一章先回顾了些基础知识，主要是概率和信息论里的基础，顺带复习了下《概率统计》那本书。2.4节的随机过程没太看懂，这块要补一补相关的基础，以后需要的时候再回头来看看。</p><p>下面是我写的部分习题的解答。</p><h3 id="P2.1"><a class="docs-heading-anchor" href="#P2.1">P2.1</a><a id="P2.1-1"></a><a class="docs-heading-anchor-permalink" href="#P2.1" title="Permalink"></a></h3><p class="math-container">\[\begin{equation}
+E(X) = \sum_{i=1}^n E(X_i) = np
+\end{equation}\]</p><p class="math-container">\[\begin{equation}
+\begin{split}
+Var(X) &amp;= \sum_{i=1}^n Var(X_i) \\
+       &amp;= n\,Var(X_i) \\
+       &amp;= n \left( E(X_i^2) - (E(X_i))^2\right) \\
+       &amp;= n(p - p^2)
+\end{split}
+\end{equation}\]</p><h3 id="P2.2"><a class="docs-heading-anchor" href="#P2.2">P2.2</a><a id="P2.2-1"></a><a class="docs-heading-anchor-permalink" href="#P2.2" title="Permalink"></a></h3><p class="math-container">\[\begin{equation}
+E(X) = \int_a^b x \frac{1}{b-a} \, dx = \frac{a+b}{2}
+\end{equation}\]</p><p class="math-container">\[\begin{equation}
+\begin{split}
+Var(X) &amp;= E(X^2) - (E(X))^2 \\
+       &amp;= \int_a^b x^2 \frac{1}{b-a} \, dx - \left( \frac{a+b}{2}\right) ^ 2\\
+     &amp;= \frac{a^2 + ab + b^2}{3}  - \frac{a^2 + 2ab + b^2}{4} \\
+     &amp;= \frac{a^2 -2ab + b^2}{12}
+\end{split}
+\end{equation}\]</p><h3 id="P2.3"><a class="docs-heading-anchor" href="#P2.3">P2.3</a><a id="P2.3-1"></a><a class="docs-heading-anchor-permalink" href="#P2.3" title="Permalink"></a></h3><p>See the Appendix A.1 in <a href="http://cs229.stanford.edu/section/gaussians.pdf">http://cs229.stanford.edu/section/gaussians.pdf</a></p><h3 id="P2.4"><a class="docs-heading-anchor" href="#P2.4">P2.4</a><a id="P2.4-1"></a><a class="docs-heading-anchor-permalink" href="#P2.4" title="Permalink"></a></h3><p>The definition of beta function is given by:</p><p class="math-container">\[
+\begin{equation}
+B(\alpha, \beta) = \int_0^1 x^{\alpha-1} (1-x)^{\beta - 1}\, dx
+\label{beta_eq}
+\end{equation}
+$$
+
+And we have:
+
+$$\begin{equation}
+B(\alpha, \beta) = \frac{\Gamma(\alpha) \Gamma(\beta)}{\Gamma(\alpha + \beta)}
+\label{beta_eq_gamma}
+\end{equation}\]</p><p>The Beta distribution is:</p><p class="math-container">\[\begin{equation}
+f(x \mid \alpha, \beta) = \left\{\begin{matrix}
+\frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)} x^{\alpha -1}(1-x)^{\beta - 1} &amp; for \; 0\lt x \lt1 \\ 
+0 &amp; otherwise.
+\end{matrix}\right.
+\end{equation}
+$$
+
+So we get:
+
+$$\begin{equation}
+\begin{split}
+E(X^k) &amp;= \int_0^1 x^k f(x \mid \alpha, \beta) \, dx \\
+       &amp;= \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)} \int_0^1 x^{\alpha + k -1}(1-x)^{\beta - 1} \, dx \\
+       &amp;= \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)}  \cdot  \frac{\Gamma(\alpha + k) \Gamma(\beta)}{\Gamma(\alpha + k + \beta)}
+\end{split}
+\label{beta_moment}
+\end{equation}\]</p><p>And the Gamma function has a property that:</p><p class="math-container">\[\begin{equation}
+\begin{matrix}
+\Gamma(\alpha) = (\alpha - 1)\Gamma(\alpha-1) &amp; if \alpha \gt 1
+\end{matrix}
+\label{gamma_property}
+\end{equation}\]</p><p>Combine <span>$\eqref{beta_moment}$</span> and <span>$\eqref{gamma_property}$</span>, we have that:</p><p class="math-container">\[\begin{equation}
+E(X) = \frac{\alpha}{\alpha + \beta}
+\end{equation}\]</p><p class="math-container">\[\begin{equation}
+E(X^2) = \frac{\alpha (\alpha + 1)}{(\alpha + \beta)(\alpha + \beta + 1)}
+\end{equation}\]</p><p>So we get: <span>$\begin{equation} Var(X) = E(X^2) -(E(X))^2 =\frac{\alpha \beta}{(\alpha + \beta)^2(\alpha + \beta + 1)} \end{equation}$</span></p><h3 id="P2.5"><a class="docs-heading-anchor" href="#P2.5">P2.5</a><a id="P2.5-1"></a><a class="docs-heading-anchor-permalink" href="#P2.5" title="Permalink"></a></h3><p>Bellow I will show that <span>$\eqref{beta_eq_gamma}$</span> and <span>$\eqref{beta_eq}$</span> are equal: $ \begin{split} \Gamma(a)\Gamma(b)  &amp;= \int<em>0^\infty e^{-x} x^{a-1} \, dx \int</em>0^{\infty} e^{-y} y^{b-1} \, dy  \
+&amp;= \int<em>0^\infty \int</em>0^\infty  e^{-(x+y)} x^{a-1} y^{b-1} \, dx \,dy  \
+\end{split}$</p><p>change <span>$t = x + y$</span>, naturally <span>$t \ge x$</span> we have:</p><p class="math-container">\[\begin{split}
+\int_0^\infty \int_0^\infty  e^{-(x+y)} x^{a-1} y^{b-1} \, dx \,dy  
+&amp;= \int_0^\infty e^{-t} \left(\int_0^\infty x^{a-1}(t-x)^{b-1} \, dx\right)\, dt \\
+&amp; \stackrel{x=\mu t}{=}\int_0^\infty e^{-t} \left( t^{a+b-1 } \int_0^{1} \mu^{a-1} (1-\mu)^{b-1} \, d\mu\right) dt \\
+&amp; = \int_0^{1} \mu^{a-1} (1-\mu)^{b-1} \, d\mu \int_0^{\infty}e^{-t} t^{a+b-1} \, dt \\
+&amp;= \int_0^{1} \mu^{a-1} (1-\mu)^{b-1} \, d\mu \cdot \Gamma(a+b)
+\end{split}\]</p><h3 id="P2.6"><a class="docs-heading-anchor" href="#P2.6">P2.6</a><a id="P2.6-1"></a><a class="docs-heading-anchor-permalink" href="#P2.6" title="Permalink"></a></h3><p class="math-container">\[\begin{equation}
+\begin{split}
+E(X^k) &amp;= \int_0^{\infty} x^k \frac{b^a}{\Gamma(a)} x^{a-1} e^{-bx} \, dx \\
+&amp;\stackrel{z=bx}{=}\int_0^{\infty} \frac{b^a}{\Gamma(a)} \left(\frac{z}{b}\right)^{a-1+k}e^{z} \frac{1}{b}\, dz \\
+&amp;= b^{-k} \frac{\Gamma(a+k)}{\Gamma(a)} \\
+\end{split}
+\end{equation}\]</p><p>Then we have: <span>$\begin{align} E(X) &amp;= \frac{a}{b} \\
+E(X^2) &amp;= \frac{(a+1)a}{b^2}  \\
+Var(X) &amp;=E(X^2)-(E(X))^2 = \frac{a}{b^2} \end{align}$</span></p><h3 id="P2.7"><a class="docs-heading-anchor" href="#P2.7">P2.7</a><a id="P2.7-1"></a><a class="docs-heading-anchor-permalink" href="#P2.7" title="Permalink"></a></h3><p>See <a href="http://www.mas.ncl.ac.uk/~nmf16/teaching/mas3301/week6.pdf">http://www.mas.ncl.ac.uk/~nmf16/teaching/mas3301/week6.pdf</a> for details.</p><h3 id="P2.8"><a class="docs-heading-anchor" href="#P2.8">P2.8</a><a id="P2.8-1"></a><a class="docs-heading-anchor-permalink" href="#P2.8" title="Permalink"></a></h3><p>Suppose <span>$Var(X_i) = \sigma^2$</span>, so we have <span>$Var(\bar{X})=\sigma^2/n$</span>, when <span>$n \to \infty$</span>, <span>$Var(\bar{X}) \to 0$</span>.</p><h3 id="P2.11"><a class="docs-heading-anchor" href="#P2.11">P2.11</a><a id="P2.11-1"></a><a class="docs-heading-anchor-permalink" href="#P2.11" title="Permalink"></a></h3><p>Let <span>$f(x) = \ln x -x + 1$</span>, the first order is <span>$f&#39;(x) = 1/x - 1$</span>, so we have <span>$f(x) \ge f(1) = 0$</span>.</p><h3 id="P2.12"><a class="docs-heading-anchor" href="#P2.12">P2.12</a><a id="P2.12-1"></a><a class="docs-heading-anchor-permalink" href="#P2.12" title="Permalink"></a></h3><p class="math-container">\[\begin{equation}
+\begin{split}
+I(x,y) &amp;= \sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}}P(x,y) \log {\frac{P(x,y)}{P(x)P(y)}} \\
+&amp;= - \sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}}P(x,y) \log {\frac{P(x)P(y)}{P(x,y)}} \\
+&amp; \ge - \sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} P(x,y)\left(\frac{P(x)P(y)}{P(x,y)} -1\right) \\
+\end{split}
+\end{equation}\]</p><h3 id="P2.13"><a class="docs-heading-anchor" href="#P2.13">P2.13</a><a id="P2.13-1"></a><a class="docs-heading-anchor-permalink" href="#P2.13" title="Permalink"></a></h3><p class="math-container">\[
+\begin{equation}
+\begin{split}
+-\sum_{i \in I} p_i \log \left( \frac {q_i} {p_i} \right) &amp; \ge - \sum_{i \in I} p_i \left( \frac {q_i - p_i} {p_i}\right) \\
+ &amp;= -\sum_{i \in I} (q_i - p_i) \\
+ &amp;= 1 - \sum_{i \in I} q_i \\
+ &amp;\ge 0
+\end{split}
+\end{equation}
+$$
+
+### P2.15 
+
+See [https://stats.stackexchange.com/questions/66108/](https://stats.stackexchange.com/questions/66108/why-is-entropy-maximised-when-the-probability-distribution-is-uniform) for details.
+
+## CH03
+
+这一章先从参数估计入手，介绍了参数视角下的线性回归和分类问题，作者提到了本书重点关注有监督的问题，无监督的问题没有涉及。
+
+下面是我写的部分习题的解答。
+
+### P3.1
+
+$$\begin{equation}
+\begin{split}
+\sigma_c^2 &amp;= Var(\hat{\theta}) \\
+&amp;= Var(\frac{1}{m} \sum_{i=1}^{m} \hat{\theta}_i) \\
+&amp;= \frac{1}{m^2} \sum_{i=1}^{m} Var(\hat{\theta}_i) \\
+&amp;= \frac{1}{m} \sigma^2
+\end{split}
+\end{equation}\]</p><h3 id="P3.2-and-P3.3"><a class="docs-heading-anchor" href="#P3.2-and-P3.3">P3.2 &amp; P3.3</a><a id="P3.2-and-P3.3-1"></a><a class="docs-heading-anchor-permalink" href="#P3.2-and-P3.3" title="Permalink"></a></h3><p>See <a href="http://willett.ece.wisc.edu/wp-uploads/2016/01/15-MVUE.pdf">http://willett.ece.wisc.edu/wp-uploads/2016/01/15-MVUE.pdf</a> for details.</p><h3 id="P3.4"><a class="docs-heading-anchor" href="#P3.4">P3.4</a><a id="P3.4-1"></a><a class="docs-heading-anchor-permalink" href="#P3.4" title="Permalink"></a></h3><p>According to the quadratic formula, we can easily get the inequation.</p><h3 id="P3.5"><a class="docs-heading-anchor" href="#P3.5">P3.5</a><a id="P3.5-1"></a><a class="docs-heading-anchor-permalink" href="#P3.5" title="Permalink"></a></h3><p>By taking the derivative of <span>$MSE(\hat{\theta}_b)$</span> with respect to <span>$\alpha$</span>, we let:</p><p class="math-container">\[\begin{equation}
+2(1+\alpha)MSE(\hat{\theta}_{MVU}) + 2\hat{\theta}_o^2 \alpha = 0
+\end{equation}\]</p><p>and then we get:</p><p class="math-container">\[\begin{equation}
+\alpha_* = - \frac{MSE(\hat{\theta}_{MVU})}{MSE(\hat{\theta}_{MVU}) + \hat{\theta}_o^2} = - \frac{1}{1+\frac{\hat{\theta}_o^2}{MSE(\hat{\theta}_{MVU})}}
+\end{equation}\]</p><h3 id="P3.6"><a class="docs-heading-anchor" href="#P3.6">P3.6</a><a id="P3.6-1"></a><a class="docs-heading-anchor-permalink" href="#P3.6" title="Permalink"></a></h3><p>Since the expectation in Eq 3.26 is taken with respect to <span>$p(\mathcal{X};\theta)$</span>, if the integration and differentiation can be interchanged, we can first take the integration of <span>$p(\mathcal{X};\theta)$</span>, resulting Eq 3.26</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 23 December 2023 15:51">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

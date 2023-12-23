@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>详解Flux.jl · Jun Tian</title><meta name="title" content="详解Flux.jl · Jun Tian"/><meta property="og:title" content="详解Flux.jl · Jun Tian"/><meta property="twitter:title" content="详解Flux.jl · Jun Tian"/><meta name="description" content="Documentation for Jun Tian."/><meta property="og:description" content="Documentation for Jun Tian."/><meta property="twitter:description" content="Documentation for Jun Tian."/><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>详解Flux.jl</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>详解Flux.jl</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/An_Introduction_to_Flux.jl/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: Flux.jl,Julia CJKmainfont: KaiTi –-</p><h1 id="详解Flux.jl"><a class="docs-heading-anchor" href="#详解Flux.jl">详解Flux.jl</a><a id="详解Flux.jl-1"></a><a class="docs-heading-anchor-permalink" href="#详解Flux.jl" title="Permalink"></a></h1><p>本文将详细介绍Julia语言中的一个深度学习库——<a href="http://fluxml.ai/">Flux.jl</a>，目的是在理解其内部结构之后，能在其之上做个性化定制。</p><h2 id="核心概念"><a class="docs-heading-anchor" href="#核心概念">核心概念</a><a id="核心概念-1"></a><a class="docs-heading-anchor-permalink" href="#核心概念" title="Permalink"></a></h2><h3 id="TrackedArray"><a class="docs-heading-anchor" href="#TrackedArray"><code>TrackedArray</code></a><a id="TrackedArray-1"></a><a class="docs-heading-anchor-permalink" href="#TrackedArray" title="Permalink"></a></h3><p><code>TrackedArray</code>类型用来对最基本的数组做封装。我们知道，深度学习框架带来的最大好处之一就是不用手写梯度反传的函数，其实现是基于这样一个事实，对于一类基本的函数，其梯度的计算方式是已知的，于是通过链式法则可以实现对整个网络中的每个参数进行更新。因此，一个<code>TrackedArray</code>类型应该至少包含</p><ol><li>数据，即数组当前的值</li><li>映射函数，描述当前数据是根据怎样的函数（以及对应的参数）得到的，从而方便进一步反传</li><li>梯度，当前数据的梯度</li></ol><p>然后我们看看源码中的<a href="https://github.com/FluxML/Flux.jl/blob/master/src/tracker/lib/array.jl#L9-L15">定义</a></p><pre><code class="language-julia hljs">struct TrackedArray{T,N,A&lt;:AbstractArray{T,N}} &lt;: AbstractArray{T,N}
+  tracker::Tracked{A}
+  data::A
+  grad::A
+  TrackedArray{T,N,A}(t::Tracked{A}, data::A) where {T,N,A} = new(t, data)
+  TrackedArray{T,N,A}(t::Tracked{A}, data::A, grad::A) where {T,N,A} = new(t, data, grad)
+end</code></pre><p>可以看到，代码的定义与我们的直觉相符，这里的<code>tracker</code>字段就是用来<strong>记录</strong><code>data</code>字段是怎么得到的。再具体看下<code>Tracked{T}</code>的<a href="https://github.com/FluxML/Flux.jl/blob/master/src/tracker/Tracker.jl#L32-L40">定义</a>：</p><pre><code class="language-julia hljs">mutable struct Tracked{T}
+  ref::UInt32
+  f::Call
+  isleaf::Bool
+  grad::T
+  Tracked{T}(f::Call) where T = new(0, f, false)
+  Tracked{T}(f::Call, grad::T) where T = new(0, f, false, grad)
+  Tracked{T}(f::Call{Nothing}, grad::T) where T = new(0, f, true, grad)
+end</code></pre><p><code>ref</code>先不管，<code>isleaf</code>用来标志当前是否是叶子节点(叶子节点有特殊含义，需要作区分，原因是一旦遇到叶子节点，就不需要继续反传了)，<code>grad</code>用来记录梯度（初看似乎跟<code>TrackedArray</code>中有重复？其实从数据结构上来看，需要有这么个地方做缓存，后面会解释。），最关键的<code>f</code>记录了作用的函数以及其参数，下面是<code>Call</code>的<a href="https://github.com/FluxML/Flux.jl/blob/master/src/tracker/Tracker.jl#L19-L22">定义</a>：</p><pre><code class="language-julia hljs">struct Call{F,As&lt;:Tuple}
+  func::F
+  args::As
+end</code></pre><p>其实就是为了弥补Julia中函数的类型没有携带参数类型。</p><p>总结一下:</p><ul><li><code>TrackedArray</code> 包含 <code>data</code>, <code>grad</code> 和 <code>tracker</code> 三个字段，分别用于记录当前节点上的数据，梯度以及当前节点是如何根据其它节点计算得到的。</li><li><code>tracker</code> 是一个 <code>Tracked{T}</code> 类型，其中最核心的一个字段是计算函数<code>f::Call</code>。</li></ul><h3 id="前向计算"><a class="docs-heading-anchor" href="#前向计算">前向计算</a><a id="前向计算-1"></a><a class="docs-heading-anchor-permalink" href="#前向计算" title="Permalink"></a></h3><p>现在我们了解了<code>TrackedArray</code>的组成，但是具体怎么做前向计算的呢？</p><h4 id="通过param构造TrackedArray"><a class="docs-heading-anchor" href="#通过param构造TrackedArray">通过<code>param</code>构造<code>TrackedArray</code></a><a id="通过param构造TrackedArray-1"></a><a class="docs-heading-anchor-permalink" href="#通过param构造TrackedArray" title="Permalink"></a></h4><p>万丈高楼平地起！</p><p>在julia中，数组一般以<code>AbstractArray</code>的形式存在，而在Flux中，为了存储前向计算函数和梯度信息，需要将这类<code>AbstractArray</code>数据构造成<code>TrackedArray</code>，然后才能对不同的<code>TrackedArray</code>做前向计算。<code>param</code><a href="https://github.com/FluxML/Flux.jl/blob/master/src/tracker/Tracker.jl#L106-L107">函数</a>就是用来构造<code>TrackedArray</code>的。</p><pre><code class="language-julia hljs"># https://github.com/FluxML/Flux.jl/blob/master/src/tracker/Tracker.jl#L107
+param(xs::AbstractArray) = TrackedArray(float.(xs))
+
+# https://github.com/FluxML/Flux.jl/blob/master/src/tracker/lib/array.jl#L32
+TrackedArray(x::AbstractArray) = TrackedArray(Call(), x, zeros(x))
+
+# https://github.com/FluxML/Flux.jl/blob/master/src/tracker/Tracker.jl#L25
+Call() = Call(nothing, ())
+
+# https://github.com/FluxML/Flux.jl/blob/master/src/tracker/lib/array.jl#L29
+TrackedArray(c::Call, x::A, Δ::A) where A &lt;: AbstractArray = TrackedArray{eltype(A),ndims(A),A}(Tracked{A}(c, Δ), x, Δ)
+
+# https://github.com/FluxML/Flux.jl/blob/master/src/tracker/Tracker.jl#L39
+Tracked{T}(f::Call{Nothing}, grad::T) where T = new(0, f, true, grad)</code></pre><p>可以看到，对于原始的数组类型，用<code>param</code>封装成<code>TrackedArray</code>之后，主要就是在外层套了一个<code>nothing</code>的<code>f</code>，并置为了叶子节点。</p><p><img src="Resources/img/param.png" alt="the `param` function"/></p><p>这里用一个例子来确认下：</p><pre><code class="language-julia hljs">julia&gt; w1 = [1 2; 3 4]
+2×2 Array{Int64,2}:
+ 1  2
+ 3  4
+
+julia&gt; w1_tracked = param(w1)
+Tracked 2×2 Array{Float64,2}:
+ 1.0  2.0
+ 3.0  4.0
+
+julia&gt; w1_tracked.data
+2×2 Array{Float64,2}:
+ 1.0  2.0
+ 3.0  4.0
+
+julia&gt; w1_tracked.grad
+2×2 Array{Float64,2}:
+ 0.0  0.0
+ 0.0  0.0
+
+julia&gt; w1_tracked.tracker.f
+Flux.Tracker.Call{Void,Tuple{}}(nothing, ())
+
+julia&gt; w1_tracked.tracker.isleaf
+true</code></pre><p>理解<code>TrackedArray</code>这个基础概念之后，接下来看看如何对<code>TrackedArray</code>做运算，毕竟在Flux的世界里，深度学习的网络就是靠<code>TrackedArray</code>构造的(其实还有<code>TrackedReal</code>等等)。在Flux的<a href="https://github.com/FluxML/Flux.jl/blob/master/src/tracker/lib/array.jl">array.jl</a>文件中，做了大量对<code>TrackedArray</code>的封装工作，目的主要有：</p><ol><li>将<code>TrackedArray</code>看作普通的<code>AbstractArray</code>，把系统对Array的一些操作绑定到<code>data</code>字段上</li><li>重载一些基本的数组运算，通过<code>track</code>函数将对<code>TrackedArray</code>的运算结果封装成新的<code>TrackedArray</code></li></ol><p>粗略看一下<a href="https://github.com/FluxML/Flux.jl/blob/master/src/tracker/lib/array.jl">array.jl</a>便可发现，几乎所有的运算都靠<code>track</code><a href="https://github.com/FluxML/Flux.jl/blob/master/src/tracker/Tracker.jl#L50-L53">函数</a>来实现转换：</p><pre><code class="language-julia hljs">function track(f, xs...; kw...)
+  # 前向计算，得到结果y和反向求导函数back
+  y, back = _forward(f, xs...; kw...)
+  # 生成新的Tracked结构
+  track(Call(back, tracker.(xs)), y)
+end</code></pre><p>第一次看这个代码的时候一脸懵，因为全局搜索<code>_forward</code>你会发现，源代码中总共只出现了三处。但这不符合直觉啊，所有的<code>TrackArray</code>运算都会用到<code>_forward</code>函数，因此应该有很多重载函数才对。后来才发现，<code>_forward</code>函数是通过一个<code>@grad</code><a href="https://github.com/FluxML/Flux.jl/blob/master/src/tracker/Tracker.jl#L55">宏</a>定义的（这个宏稍稍有点复杂，核心是定义前向和反向求导的计算方式），在重载（或者定义）每个计算函数的时候，通过这个<code>@grad</code>宏同时把前向计算和梯度计算函数都定义了。</p><pre><code class="language-julia hljs">macro grad(ex)
+  @capture(shortdef(ex), (name_(args__) = body_) |
+                         (name_(args__) where {T__} = body_)) || error(&quot;Need a function definition&quot;)
+  T == nothing &amp;&amp; (T = [])
+  isexpr(name, :(::)) || (name = :(::typeof($name)))
+  insert!(args, 1+isexpr(args[1], :parameters) , name)
+  @q(Tracker._forward($(args...)) where $(T...) = $body) |&gt; esc
+end</code></pre><p>这里很骚气地用了<a href="https://github.com/MikeInnes/MacroTools.jl">MacroTools</a>中的<code>@capture</code>宏，说白了，就是用来构造上面的<code>_forward</code>函数，看个例子就明白了</p><pre><code class="language-julia hljs">@grad a * b = data(a)*data(b), Δ -&gt; (Δ*b, a*Δ)  # 返回两个元素，第一个是前向计算的结果，第二个是反向计算梯度的函数</code></pre><p>于是，前向计算的问题基本解决了，同时反向计算需要的偏导函数也准备好了。为了支持除了built-in计算方式之外的一些常见的函数（比如Softmax, Relu等），Flux单独开发了一个库<a href="https://github.com/FluxML/NNlib.jl">NNlib.jl</a>。</p><h3 id="反向传播"><a class="docs-heading-anchor" href="#反向传播">反向传播</a><a id="反向传播-1"></a><a class="docs-heading-anchor-permalink" href="#反向传播" title="Permalink"></a></h3><p>从代码逻辑上来讲，反向传播的实现很容易：</p><ol><li>从后往前计算偏导并更新<code>TrackedArray</code>的<code>grad</code>字段</li><li>根据偏导更新weight</li></ol><p>不过有些小细节需要处理：</p><pre><code class="language-julia hljs">function back!(x, Δ)
+  istracked(x) || return
+  scan(x)
+  back(tracker(x), Δ)
+  return
+end</code></pre><p>这里，<code>scan</code>的目的是重置整个网络中的<code>grad</code>：</p><pre><code class="language-julia hljs">function scan(x::Tracked)
+  x.isleaf &amp;&amp; return
+  ref = x.ref += 1
+  if ref == 1
+    scan(x.f)
+    isdefined(x, :grad) &amp;&amp; (x.grad = zero_grad!(x.grad))
+  end
+  return
+end</code></pre><p>可以看到，<code>ref</code>的作用是引用计数（这里先<code>+=1</code>，后面<code>back</code>执行的时候会<code>-=1</code>），反向传播的时候，会将多次计数的<code>grad</code>进行累加，直至计算完成后再真正执行<code>back_</code>:</p><pre><code class="language-julia hljs">function back(x::Tracked, Δ)
+  x.isleaf &amp;&amp; (x.grad = accum!(x.grad, Δ); return)
+  ref = x.ref -= 1
+  if ref &gt; 0 || isdefined(x, :grad)
+    if isdefined(x, :grad)
+      x.grad = accum!(x.grad, Δ)
+    else
+      x.grad = Δ
+    end
+    ref == 0 &amp;&amp; back_(x.f, x.grad)
+  else
+    ref == 0 &amp;&amp; back_(x.f, Δ)
+  end
+  return
+end</code></pre><p>而<code>back_</code>的逻辑就很简单了：</p><pre><code class="language-julia hljs">function back_(c::Call, Δ)
+  Δs = c.func(Δ)
+  (Δs isa Tuple &amp;&amp; length(Δs) &gt;= length(c.args)) ||
+    error(&quot;Gradient is not a tuple of length $(length(c.args))&quot;)
+  foreach(back, c.args, data.(Δs))
+end</code></pre><p>计算偏导并迭代下去。</p><p>接下来是<code>update!</code></p><pre><code class="language-julia hljs">function update!(x, Δ)
+  x.data .+= data(Δ)
+  tracker(x).grad .= 0
+  return x
+end</code></pre><p>可以看到，每次计算完会有一个置零的操作。</p><p>对，如果手动更新的话，就这么简单了。</p><p>不过大多时候，都有个Optimiser，如<code>SGD</code>,<code>Adam</code>等，来辅助更新梯度。Flux在这方面没有任何特殊之处，作者用一个<code>Param</code>结构来管理data和Δ。</p><pre><code class="language-julia hljs">struct Param{T}
+  x::T
+  Δ::T
+en</code></pre><p>然后，各个Optimizer管理自己的状态，~~主要是通过闭包实现的~~，最新版的不再使用闭包了，直接构造了<code>struct</code>。</p><h3 id="layer"><a class="docs-heading-anchor" href="#layer">layer</a><a id="layer-1"></a><a class="docs-heading-anchor-permalink" href="#layer" title="Permalink"></a></h3><p>layer对一些常见的模块做了封装，如RNN和CNN等。写起来确实简单，不过，感觉需要有benchmark测试下性能。</p><h3 id="其它"><a class="docs-heading-anchor" href="#其它">其它</a><a id="其它-1"></a><a class="docs-heading-anchor-permalink" href="#其它" title="Permalink"></a></h3><p>剩下的主要就是一些工具函数了，比如<code>treelike</code>，<code>onehot</code>等。</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 23 December 2023 15:51">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>如何在Julia中计算点积? · Jun Tian</title><meta name="title" content="如何在Julia中计算点积? · Jun Tian"/><meta property="og:title" content="如何在Julia中计算点积? · Jun Tian"/><meta property="twitter:title" content="如何在Julia中计算点积? · Jun Tian"/><meta name="description" content="Documentation for Jun Tian."/><meta property="og:description" content="Documentation for Jun Tian."/><meta property="twitter:description" content="Documentation for Jun Tian."/><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>如何在Julia中计算点积?</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>如何在Julia中计算点积?</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/programming/Dot_Product_in_Julia/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="如何在Julia中计算点积?"><a class="docs-heading-anchor" href="#如何在Julia中计算点积?">如何在Julia中计算点积?</a><a id="如何在Julia中计算点积?-1"></a><a class="docs-heading-anchor-permalink" href="#如何在Julia中计算点积?" title="Permalink"></a></h1><p><em>回字有几种写法?</em> 🤔</p><div class=blogmeta><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='150' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='150' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='75' height='20' fill='#555'/><rect x='75' width='75' height='20' fill='#97C40F'/><rect width='150' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='385' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='650'>Last Update</text><text x='385' y='140' transform='scale(.1)' textLength='650'>Last Update</text><text x='1115' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='650'>2021-11-19</text><text x='1115' y='140' transform='scale(.1)' textLength='650'>2021-11-19</text></g></svg><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='122' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='122' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='47' height='20' fill='#555'/><rect x='47' width='75' height='20' fill='#4c1'/><rect width='122' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='245' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='370'>Create</text><text x='245' y='140' transform='scale(.1)' textLength='370'>Create</text><text x='835' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='650'>2021-11-16</text><text x='835' y='140' transform='scale(.1)' textLength='650'>2021-11-16</text></g></svg><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='54' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='54' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='19' height='20' fill='#555'/><rect x='19' width='35' height='20' fill='#0F80C1'/><rect width='54' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='105' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='90'>#</text><text x='105' y='140' transform='scale(.1)' textLength='90'>#</text><text x='355' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='250'>Julia</text><text x='355' y='140' transform='scale(.1)' textLength='250'>Julia</text></g></svg><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='60' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='60' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='19' height='20' fill='#555'/><rect x='19' width='41' height='20' fill='#0F80C1'/><rect width='60' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='105' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='90'>#</text><text x='105' y='140' transform='scale(.1)' textLength='90'>#</text><text x='385' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='310'>CUDA</text><text x='385' y='140' transform='scale(.1)' textLength='310'>CUDA</text></g></svg><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='52' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='52' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='19' height='20' fill='#555'/><rect x='19' width='33' height='20' fill='#0F80C1'/><rect width='52' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='105' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='90'>#</text><text x='105' y='140' transform='scale(.1)' textLength='90'>#</text><text x='345' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='230'>GPU</text><text x='345' y='140' transform='scale(.1)' textLength='230'>GPU</text></g></svg></div><p>两个向量<span>$\vec{a} = [a_1, a_2, ..., a_n]$</span> 和 <span>$\vec{b} = [b_1, b_2, ..., b_n]$</span> 之间点积（dot product)的代数定义如下：</p><p class="math-container">\[\vec{a} \cdot \vec{b} = \sum^n_{i=1} a_i b_i = a_1 b_1 + a_2 b_2 + ... + a_n b_n\]</p><p>那么，如何在Julia中快速计算点积呢？</p><h2 id="版本1：-使用-LinearAlgebra-标准库中的-dot-函数"><a class="docs-heading-anchor" href="#版本1：-使用-LinearAlgebra-标准库中的-dot-函数">版本1： 使用 LinearAlgebra 标准库中的 <code>dot</code> 函数</a><a id="版本1：-使用-LinearAlgebra-标准库中的-dot-函数-1"></a><a class="docs-heading-anchor-permalink" href="#版本1：-使用-LinearAlgebra-标准库中的-dot-函数" title="Permalink"></a></h2><pre><code class="language-julia hljs">julia&gt; using LinearAlgebra
+
+julia&gt; N = 1024*1024
+1048576
+
+julia&gt; x, y = rand(N), rand(N);
+
+julia&gt; dot(x,y)
+262311.47579656926
+</code></pre><p>先测试下标准库里 <code>dot</code> 的性能：</p><pre><code class="language-julia hljs">julia&gt; using BenchmarkTools
+
+julia&gt; @benchmark dot($(rand(N)), $(rand(N)))
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  244.474 μs …  43.973 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     252.275 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   314.178 μs ± 884.297 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+  ▇█▄▃▂▁▁▁▁▁▁▁ ▁▂                                               ▂
+  ████████████████▇▇▇▇▇█▇▇▇▇▇▇▇▇▆▆▅▆▇▇▅▃▅▅▄▃▄▄▃▃▄▃▅▇██▆▅▅▃▄▁▃▃▃ █
+  244 μs        Histogram: log(frequency) by time        594 μs &lt;
+
+ Memory estimate: 0 bytes, allocs estimate: 0.</code></pre><p>中间值位于252μs附近。</p><h2 id="版本2：-for循环"><a class="docs-heading-anchor" href="#版本2：-for循环">版本2： for循环</a><a id="版本2：-for循环-1"></a><a class="docs-heading-anchor-permalink" href="#版本2：-for循环" title="Permalink"></a></h2><p>当然，即使不使用自带的<code>dot</code>函数，我们也可以很方便地用一个 <code>for</code> 循环来实现：</p><pre><code class="language-julia hljs">function dot2_1(x, y)
+    res = 0
+    for i in eachindex(x, y)
+        res += x[i] * y[i]
+    end
+    res
+end</code></pre><p>写法基本和原始的数学表达式一样，那性能如何呢？</p><pre><code class="language-julia hljs">julia&gt; @benchmark dot2_1($(rand(N)), $(rand(N)))
+BenchmarkTools.Trial: 2134 samples with 1 evaluation.
+ Range (min … max):  2.286 ms …  2.942 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     2.302 ms              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   2.330 ms ± 56.418 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+  █ █                                                         
+  █▃█▇▃▃▃▃▃▃▃▃▃▃▄▃▃▃▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▁▁▁▂▂▁▁▁▁▂▂▂▂▂▁▂ ▃
+  2.29 ms        Histogram: frequency by time         2.6 ms &lt;
+
+ Memory estimate: 0 bytes, allocs estimate: 0.</code></pre><p>呃， 耗时差不多是原来的9倍了。有点不可思议，那怎么优化下呢？ 先用 <code>@code_warntype</code> 看下：</p><p><img src="code_warntype_dot2_1.png" alt/></p><p>注意到上面标红色的部分，这是提醒我们上面的实现中出现了类型不稳定的情况。主要原因是<code>res</code>在<code>dot2_1</code>函数中，初始化成了<code>Int64</code>类型的<code>0</code>，而我们的输入是两个<code>Vector{Float64}</code>类型的向量。了解这一点之后，可以把上面的实现写得更灵活一些：</p><pre><code class="language-julia hljs">function dot2_2(x::AbstractArray{X}, y::AbstractArray{Y}) where {X,Y}
+    res = zero(promote_type(X,Y))
+    for i in eachindex(x, y)
+        res += x[i] * y[i]
+    end
+    res
+end</code></pre><p>这里， 通过 <code>promote_type</code> 获取类型信息。</p><pre><code class="language-julia hljs">julia&gt; @benchmark dot2_2($(rand(N)), $(rand(N)))
+BenchmarkTools.Trial: 3384 samples with 1 evaluation.
+ Range (min … max):  1.410 ms …  3.580 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     1.449 ms              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   1.464 ms ± 66.969 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+         ▆ ▃█ ▄                                               
+  ▂▃▃▃▅█▆██████▇▅█▄▄▄▄▄▄▄▃▄▄▄▃▄▄▄▄▄▃▃▄▃▃▃▂▃▃▃▂▂▃▂▂▂▂▂▁▂▂▂▂▂▂ ▃
+  1.41 ms        Histogram: frequency by time        1.59 ms &lt;
+
+ Memory estimate: 0 bytes, allocs estimate: 0.</code></pre><p>可以看到，比之前稍好了一些，大约是之前的5倍左右。 当然，我们还可以顺手做些进一步的优化，加上<code>@simd</code>并去掉边界检查：</p><pre><code class="language-julia hljs">function dot2_3(x::AbstractArray{X}, y::AbstractArray{Y}) where {X,Y}
+    res = zero(promote_type(X,Y))
+    @inbounds @simd for i in eachindex(x, y)
+        res += x[i] * y[i]
+    end
+    res
+end</code></pre><pre><code class="language-julia hljs">julia&gt; @benchmark dot2_3($(rand(N)), $(rand(N)))
+BenchmarkTools.Trial: 5545 samples with 1 evaluation.
+ Range (min … max):  848.684 μs …  1.296 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     871.641 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   888.964 μs ± 50.935 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+  ▂▇█▇▆▇▆▅▅▅▄▄▃▃▃▂▂▁▂▁▁▁                                       ▂
+  ███████████████████████▇▇▇▇▇▆▆▅▅▆▆▇█▇▇████▇█▇▅▇▇▅▅▅▄▄▅▅▅▅▅▄▃ █
+  849 μs        Histogram: log(frequency) by time      1.11 ms &lt;
+
+ Memory estimate: 0 bytes, allocs estimate: 0.</code></pre><p>这样差距进一步缩小了一些。当然，我们还可以进一步利用 <a href="https://github.com/JuliaSIMD/LoopVectorization.jl">LoopVectorization.jl</a> 这个库来提速：</p><pre><code class="language-julia hljs">using LoopVectorization
+function dot2_4(x::AbstractArray{X}, y::AbstractArray{Y}) where {X,Y}
+    res = zero(promote_type(X,Y))
+    @turbo for i in eachindex(x, y)
+        res += x[i] * y[i]
+    end
+    res
+end</code></pre><pre><code class="language-julia hljs">julia&gt; @benchmark dot2_4($(rand(N)), $(rand(N)))
+BenchmarkTools.Trial: 5905 samples with 1 evaluation.
+ Range (min … max):  802.618 μs …  1.211 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     820.607 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   832.880 μs ± 39.868 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+   ▂█▄                                                          
+  ▂███▆▆▇▅▄▃▃▃▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  803 μs          Histogram: frequency by time         1.02 ms &lt;
+
+ Memory estimate: 0 bytes, allocs estimate: 0.</code></pre><p>看起来稍微快了一些，不过似乎仍然与<code>LinearAlgebra</code>中的性能有3倍多的性能差距？其实不然，<code>LinearAlgebra</code>中使用了BLAS，而其默认是有多线程加速的，为了公平比较，可以将其线程数设置为1，然后对比：</p><pre><code class="language-julia hljs">julia&gt; LinearAlgebra.BLAS.set_num_threads(1)
+
+julia&gt; @benchmark dot($(rand(N)), $(rand(N)))
+BenchmarkTools.Trial: 5980 samples with 1 evaluation.
+ Range (min … max):  795.374 μs …  1.104 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     811.659 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   823.303 μs ± 37.397 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+   ▅█                                                           
+  ▃███▅▇▇▅▅▄▄▄▄▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ ▃
+  795 μs          Histogram: frequency by time         1.02 ms &lt;
+
+ Memory estimate: 0 bytes, allocs estimate: 0.</code></pre><p>可以看到，二者相差无几。</p><h2 id="版本3：-一行代码"><a class="docs-heading-anchor" href="#版本3：-一行代码">版本3： 一行代码</a><a id="版本3：-一行代码-1"></a><a class="docs-heading-anchor-permalink" href="#版本3：-一行代码" title="Permalink"></a></h2><p>当然，有的时候其实对性能也不是那么关心，反而代码的简洁性更重要，那么也可以简单地用一行代码来搞定：</p><pre><code class="language-julia hljs">julia&gt; @benchmark sum(a*b for (a,b) in zip($(rand(N)),$(rand(N))))
+BenchmarkTools.Trial: 3823 samples with 1 evaluation.
+ Range (min … max):  1.232 ms …  1.840 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     1.281 ms              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   1.295 ms ± 54.505 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+   ▃█▇▄▆▂                                                     
+  ▃███████▆▇▄▄▄▅▅▄▅▄▅▆▆▆▅▅▆▇▆▆▆▄▄▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁ ▃
+  1.23 ms        Histogram: frequency by time        1.46 ms &lt;
+
+ Memory estimate: 0 bytes, allocs estimate: 0.</code></pre><p>或者，直接用 <code>mapreduce</code>:</p><pre><code class="language-julia hljs">mapreduce(*, +, x, y)</code></pre><h2 id="版本4：-多线程"><a class="docs-heading-anchor" href="#版本4：-多线程">版本4： 多线程</a><a id="版本4：-多线程-1"></a><a class="docs-heading-anchor-permalink" href="#版本4：-多线程" title="Permalink"></a></h2><p>受前面LinearAlgebra中多线程的启发，我们同样也可以用Julia自带的多线程完成点积的计算。不过需要记得在启动Julia的时候，通过 <code>-t auto</code> 来指定线程数。</p><pre><code class="language-julia hljs">julia&gt; using Base.Threads
+
+julia&gt; nthreads()
+4</code></pre><p>这里我本机就4个线程。所以</p><pre><code class="language-julia hljs">function dot4_1(x::AbstractArray{X}, y::AbstractArray{Y}) where {X,Y}
+    res = zero(promote_type(X,Y))
+    @threads for i in eachindex(x, y)
+        res += x[i] * y[i]
+    end
+    res
+end</code></pre><pre><code class="language-julia hljs">julia&gt; @benchmark dot4_1($(rand(N)), $(rand(N)))
+BenchmarkTools.Trial: 109 samples with 1 evaluation.
+ Range (min … max):  28.586 ms … 113.851 ms  ┊ GC (min … max):  0.00% … 62.77%
+ Time  (median):     39.838 ms               ┊ GC (median):     0.00%
+ Time  (mean ± σ):   45.888 ms ±  20.565 ms  ┊ GC (mean ± σ):  14.59% ± 19.04%
+
+   ▁      █▃                                                    
+  ▇█▄█▆▁▁▇██▆▇▄▄▄▁▁▁▁▁▆▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄▁▁▁▄▁█▇▄ ▄
+  28.6 ms       Histogram: log(frequency) by time       108 ms &lt;
+
+ Memory estimate: 32.00 MiB, allocs estimate: 2097174.</code></pre><p>这个结果就比较有意思了，由于我们的多线程实现存在race condition, 实际上得到的结果并不对，并且速度相当慢。当然，为了保证结果的正确性，可以对<code>res</code>加锁，但并不能带来性能上的提升。一个简单的办法是，将数据分片，每个线程做自己单独的计算，最后把多个线程的结果合并：</p><pre><code class="language-julia hljs">function dot4_2(x::AbstractArray{X}, y::AbstractArray{Y}) where {X,Y}
+    res = zeros(promote_type(X,Y), nthreads())
+    @threads for i in 1:length(x)
+        @inbounds res[threadid()] += x[i] * y[i]
+    end
+    sum(res)
+end</code></pre><pre><code class="language-julia hljs">julia&gt; @benchmark dot4_2($(rand(N)), $(rand(N)))
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  378.194 μs …  16.460 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     397.990 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   433.403 μs ± 243.825 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+  ▅█▆▆▆▄▂▁ ▁▁      ▁▂▂▁ ▂▃▃▂▁                                   ▂
+  ██████████████▇▇███████████▇▅▆▅▅▇▅▁▃▁▃▃▁▄▁▃▁▁▅▇▄▅▃▃▄▅▄▁▄▄▆▅▄▅ █
+  378 μs        Histogram: log(frequency) by time        878 μs &lt;
+
+ Memory estimate: 1.98 KiB, allocs estimate: 22.</code></pre><p>这样得到的结果，相比单线程的结果要快了近3.2倍。</p><p>Julia标准库里没有提供多线程的求和操作，不过有一些第三方库提供了这类基本操作，比如<a href="https://github.com/tkf/ThreadsX.jl"><code>ThreadsX.jl</code></a>。</p><pre><code class="language-julia hljs">julia&gt; using ThreadsX
+
+julia&gt; @benchmark ThreadsX.sum(a*b for (a,b) in zip($(rand(N)),$(rand(N))))
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  291.519 μs …  2.023 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     326.248 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   339.611 μs ± 42.828 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+        ▃▆█▆▄▂▁                                                 
+  ▁▂▃▅▆█████████▆▆▆▆▅▄▄▄▄▃▃▃▂▂▂▂▂▂▂▂▃▃▃▃▃▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▃
+  292 μs          Histogram: frequency by time          472 μs &lt;
+
+ Memory estimate: 17.45 KiB, allocs estimate: 249.</code></pre><h2 id="版本5：-GPU版"><a class="docs-heading-anchor" href="#版本5：-GPU版">版本5： GPU版</a><a id="版本5：-GPU版-1"></a><a class="docs-heading-anchor-permalink" href="#版本5：-GPU版" title="Permalink"></a></h2><p>如果你手上正好有块GPU，不妨试试看在GPU上做点积。Julia中的<a href="https://github.com/JuliaGPU/CUDA.jl">CUDA.jl</a>极大地方便了Julia语言里的GPU编程，针对点积这样的常见操作，其提供了基于cuBLAS的封装，下面来试下：</p><pre><code class="language-julia hljs">julia&gt; using CUDA
+
+julia&gt; @benchmark CUDA.@sync dot($(cu(rand(N))), $(cu(rand(N)))) 
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  26.521 μs … 68.923 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     27.798 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   28.331 μs ±  1.494 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+  ▂▁   ▃▇█▅▁ ▃▅▇▅▂   ▂▃                                       ▂
+  ███▆▇████████████▇████▆▄▄▅▆▆▅▅▅▅▅▅▅▆▆▆▆▅▆▄▅▆▅▄▅▅▂▅▄▄▅▅▄▄▃▅▄ █
+  26.5 μs      Histogram: log(frequency) by time      35.9 μs &lt;
+
+ Memory estimate: 16 bytes, allocs estimate: 1.</code></pre><p>可以看到，其速度相当快。</p><p>不过，由于cuBLAS里的<code>dot</code>只针对常见的 <code>Float32</code>, <code>Float64</code>, <code>Float16</code> 以及对应的复数类型的GPU上的向量有实现，当输入的两个向量的元素类型不一致时，目前的CUDA.jl(v3.5.0)会fallback到CPU版本的实现，导致性能极慢：</p><pre><code class="language-julia hljs">julia&gt; z = rand(Bool, N);
+
+julia&gt; cx, cz = cu(x), cu(z);
+
+julia&gt; @time dot(cx, cz)
+┌ Warning: Performing scalar indexing on task Task (runnable) @0x00007f63cc0c0010.
+│ Invocation of getindex resulted in scalar indexing of a GPU array.
+│ This is typically caused by calling an iterating implementation of a method.
+│ Such implementations *do not* execute on the GPU, but very slowly on the CPU,
+│ and therefore are only permitted from the REPL for prototyping purposes.
+│ If you did intend to index this array, annotate the caller with @allowscalar.
+└ @ GPUArrays ~/.julia/packages/GPUArrays/3sW6s/src/host/indexing.jl:56
+ 12.914170 seconds (6.29 M allocations: 1.000 GiB, 0.87% gc time)</code></pre><p>一个简单的workaround是，先把类型不同的两个向量转换成相同的类型，然后再调用<code>dot</code>函数：</p><pre><code class="language-julia hljs">julia&gt; @benchmark CUDA.@sync dot($(cu(rand(N))), convert(CuArray{Float32}, $(cu(rand(Bool, N)))))
+BenchmarkTools.Trial: 3968 samples with 1 evaluation.
+ Range (min … max):  1.073 ms …   4.408 ms  ┊ GC (min … max): 0.00% … 30.06%
+ Time  (median):     1.140 ms               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   1.252 ms ± 464.709 μs  ┊ GC (mean ± σ):  3.35% ±  6.05%
+
+  ▂█▃  ▄▁                                     ▁                
+  ███▇▆██▆▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄█▅▃▁▃▁▁▁▃▁▃▁▁▁█ █
+  1.07 ms      Histogram: log(frequency) by time      3.85 ms &lt;
+
+ Memory estimate: 5.00 MiB, allocs estimate: 12.</code></pre><p>相比原来的GPU版本，多出来了一次拷贝数据的时间，这显然不是我们想要的。 不过，<code>CUDA.jl</code>的强大之处在于，针对这类没有内置的实现，我们可以<em>很容易地</em>通过编写自定义的核函数来实现。</p><pre><code class="language-julia hljs">function dot5_1(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
+    T = promote_type(T1, T2)
+    res = CuArray{T}([zero(T)])
+    function kernel(x, y, res)
+        for i in 1:length(x)
+            @inbounds res[] += x[i] * y[i]
+        end
+    end
+    @cuda kernel(x, y, res)
+    res[]
+end</code></pre><p>自己手写核函数经常容易出现各种bug，所以首要任务是先确认我们计算的结果是正确的：</p><pre><code class="language-julia hljs">julia&gt; isapprox(dot5_1(cx, cz), dot(cx, convert(CuArray{Float32}, cz)))
+true</code></pre><p>注意这里用的是<code>isapprox</code>来做比较。看起来我们得到的结果是正确的，那么其性能如何呢？</p><pre><code class="language-julia hljs">julia&gt; @benchmark CUDA.@sync dot5_1($(cu(rand(N))), $(cu(rand(Bool, N))))
+BenchmarkTools.Trial: 103 samples with 1 evaluation.
+ Range (min … max):  48.510 ms …  54.895 ms  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     48.514 ms               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   48.606 ms ± 657.494 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+  █▁                                                            
+  ███▁▁▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄ ▄
+  48.5 ms       Histogram: log(frequency) by time      50.6 ms &lt;
+
+ Memory estimate: 1.78 KiB, allocs estimate: 29.</code></pre><p>呃，还不如先<code>convert</code>了再调用自带的<code>dot</code>函数...... 那问题出在哪呢？其实上面的核函数只用了一个线程在计算，但是在GPU上有大量的线程可供计算，于是，可以采用上面的CPU上多线程的方法来计算：</p><pre><code class="language-julia hljs">function dot5_2(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
+    T = promote_type(T1, T2)
+    res = CuArray{T}([zero(T)])
+    function kernel(x, y, res)
+        index = threadIdx().x
+        stride = blockDim().x
+        for i in index:stride:length(x)
+            @inbounds res[] += x[i] * y[i]
+        end
+    end
+    k = @cuda launch=false kernel(x, y, res)
+    config = launch_configuration(k.fun)
+    k(x, y, res; threads=min(length(x), config.threads))
+    CUDA.@allowscalar res[]
+end</code></pre><p>这里在运行核函数的时候，指定了<code>threads</code>的个数，在核函数内部的<code>for</code>循环把数据根据<code>threads</code>切分成了不同的片段，每个thread负责计算各自的一部分。 先验证下正确性：</p><pre><code class="language-julia hljs">julia&gt; isapprox(dot5_2(cx, cz), dot(cx, convert(CuArray{Float32}, cz)))
+false</code></pre><p>等等，这里似乎犯了和前面多线程计算时候一样的错误，在往<code>res</code>里累积求和的时候，会存在静态条件。仔细观察可以发现，我们不用每次都往<code>res</code>里写入结果，只需要在每个线程内部先计算完，最后叠加上去即可，同时最后要加锁。</p><pre><code class="language-julia hljs">function dot5_3(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
+    T = promote_type(T1, T2)
+    res = CuArray{T}([zero(T)])
+    function kernel(x, y, res, T)
+        index = threadIdx().x
+        stride = blockDim().x
+        s = zero(T)
+        for i in index:stride:length(x)
+            @inbounds s += x[i] * y[i]
+        end
+        CUDA.@atomic res[] += s
+        return nothing
+    end
+    k = @cuda launch=false kernel(x, y, res,T)
+    config = launch_configuration(k.fun)
+    k(x, y, res, T; threads=min(length(x), config.threads))
+    CUDA.@allowscalar res[]
+end</code></pre><p>这里用了<code>CUDA.@atomic</code>来保证原子操作，同样，先确认计算的正确性：</p><pre><code class="language-julia hljs">julia&gt; isapprox(dot(cx, cz), dot5_3(cx, cz))
+true</code></pre><p>再看下速度如何：</p><pre><code class="language-julia hljs">julia&gt; @benchmark CUDA.@sync dot5_3($(cu(rand(N))), $(cu(rand(Bool, N))))
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  175.298 μs … 448.774 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     178.373 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   179.218 μs ±   4.301 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+    ▁▃▅▅▇█████▇▇▇▇▇▆▆▅▅▄▄▃▂▂▁▁▁▁ ▁   ▁▁▁▁▁ ▁▁▁▁▁▁▁              ▃
+  ▅▅██████████████████████████████████████████████▇██▇▇▆▇▆▅▅▇▅▆ █
+  175 μs        Histogram: log(frequency) by time        191 μs &lt;
+
+ Memory estimate: 2.16 KiB, allocs estimate: 39.</code></pre><p>还不错，至少比CPU版本快了，但是离CUBLAS版本的性能还有一定差距。</p><p>考虑到一块GPU中，还会有多个block，而上面我们才用了其中的一个block，显然还有很大的优化空间！</p><p>一个基本思路是，根据输入的数据，分配多个block，在每个block的数据区块中，按thread再切分一次，每个thread计算自己所属的数据的点积之和。</p><pre><code class="language-julia hljs">function dot5_4(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
+    T = promote_type(T1, T2)
+    res = CuArray{T}([zero(T)])
+    function kernel(x, y, res, T)
+        index = threadIdx().x
+        thread_stride = blockDim().x
+        block_stride = (length(x)-1) ÷ gridDim().x + 1
+        start = (blockIdx().x - 1) * block_stride + 1
+        stop = blockIdx().x * block_stride
+
+        s = zero(T)
+        for i in start-1+index:thread_stride:stop
+            @inbounds s += x[i] * y[i]
+        end
+        CUDA.@atomic res[] += s
+        return nothing
+    end
+    k = @cuda launch=false kernel(x, y, res,T)
+    config = launch_configuration(k.fun)
+    k(x, y, res, T; threads=min(length(x), config.threads), blocks=config.blocks)
+    CUDA.@allowscalar res[]
+end</code></pre><pre><code class="language-julia hljs">julia&gt; isapprox(dot(cx, cz), dot5_4(cx, cz))
+true
+
+julia&gt; @benchmark CUDA.@sync dot5_4($(cu(rand(N))), $(cu(rand(Bool, N))))
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  134.011 μs … 383.172 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     134.933 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   135.095 μs ±   2.723 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+       ▁▃▄▇▇▇▆████▇▆▃▃▁                                          
+  ▂▂▃▅▆█████████████████▆▅▅▅▄▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▂▂▂ ▄
+  134 μs           Histogram: frequency by time          138 μs &lt;
+
+ Memory estimate: 2.16 KiB, allocs estimate: 39.</code></pre><p>OK, 看起来稍微快了一些。需要注意的是，前面我们直接将每个thread计算的结果往一个<code>res</code>对象中通过加锁叠加上去了，这样导致每个block中每个thread都会卡在原子操作那一步。 一种优化方式是每个block的内部，先把各个thread的计算结果缓存起来，等一个block内所有thread都计算出来了同步一下，然后内部先reduce，最后再通过原子操作同步到最终的结果上。</p><pre><code class="language-julia hljs">function dot5_5(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
+    T = promote_type(T1, T2)
+    res = CuArray{T}([zero(T)])
+    function kernel(x, y, res, T)
+        index = threadIdx().x
+        thread_stride = blockDim().x
+        block_stride = (length(x)-1) ÷ gridDim().x + 1
+        start = (blockIdx().x - 1) * block_stride + 1
+        stop = blockIdx().x * block_stride
+
+        cache = CuDynamicSharedArray(T, (thread_stride,))
+
+        for i in start-1+index:thread_stride:stop
+            @inbounds cache[index] += x[i] * y[i]
+        end
+
+        sync_threads()
+
+        if index == 1
+            s = zero(T)
+            for i in 1:thread_stride
+                s += cache[i]
+            end
+            CUDA.@atomic res[] += s
+        end
+        return nothing
+    end
+    k = @cuda launch=false kernel(x, y, res,T)
+    config = launch_configuration(k.fun; shmem=(threads) -&gt; threads*sizeof(T))
+    threads = min(length(x), config.threads)
+    blocks = config.blocks
+    k(x, y, res, T; threads=threads, blocks=config.blocks, shmem=threads*sizeof(T))
+    CUDA.@allowscalar res[]
+end</code></pre><pre><code class="language-julia hljs">julia&gt; isapprox(dot(cx, cz), dot5_5(cx, cz))
+true
+
+julia&gt; @benchmark CUDA.@sync dot5_5($(cu(rand(N))), $(cu(rand(Bool, N))))
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  54.364 μs … 358.597 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     55.217 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   55.559 μs ±   4.023 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+     ▄▇█▇▅▃▂                                                    
+  ▂▄█████████▇▇▆▅▄▄▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▂▁▂ ▃
+  54.4 μs         Histogram: frequency by time         61.3 μs &lt;
+
+ Memory estimate: 2.33 KiB, allocs estimate: 43.</code></pre><p>可以看到,其性能跟CUBLAS比较接近了。当然，上面的代码还可以进一步优化，上面最后reduce的时候，只有index为1的线程在运行，其实可以多个线程一起工作：</p><pre><code class="language-julia hljs">using CUDA:i32
+
+function dot5_6(x::CuArray{T1}, y::CuArray{T2}) where {T1, T2}
+    T = promote_type(T1, T2)
+    res = CuArray{T}([zero(T)])
+    function kernel(x, y, res, T)
+        index = threadIdx().x
+        thread_stride = blockDim().x
+        block_stride = (length(x)-1i32) ÷ gridDim().x + 1i32
+        start = (blockIdx().x - 1i32) * block_stride + 1i32
+        stop = blockIdx().x * block_stride
+
+        cache = CuDynamicSharedArray(T, (thread_stride,))
+
+        for i in start-1i32+index:thread_stride:stop
+            @inbounds cache[index] += x[i] * y[i]
+        end
+        sync_threads()
+
+        mid = thread_stride
+        while true
+            mid = (mid - 1i32) ÷ 2i32 + 1i32
+            if index &lt;= mid
+                @inbounds cache[index] += cache[index+mid]
+            end
+            sync_threads()
+            mid == 1i32 &amp;&amp; break
+        end
+
+        if index == 1i32
+            CUDA.@atomic res[] += cache[1]
+        end
+        return nothing
+    end
+    k = @cuda launch=false kernel(x, y, res,T)
+    config = launch_configuration(k.fun; shmem=(threads) -&gt; threads*sizeof(T))
+    threads = min(length(x), config.threads)
+    blocks = config.blocks
+    k(x, y, res, T; threads=threads, blocks=config.blocks, shmem=threads*sizeof(T))
+    CUDA.@allowscalar res[]
+end</code></pre><pre><code class="language-julia hljs">julia&gt; isapprox(dot(cx, cz), dot5_6(cx, cz))
+true
+
+julia&gt; @benchmark CUDA.@sync dot5_6($(cu(rand(N))), $(cu(rand(Bool, N))))
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  22.520 μs … 375.954 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     23.475 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   23.762 μs ±   3.748 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+        ▁▅██▆▃▁                                                 
+  ▂▂▃▃▄▆███████▇▅▄▅▅▅▆▅▄▄▃▃▃▂▂▂▂▂▂▂▂▂▁▂▂▁▂▂▂▂▂▂▂▂▁▂▂▂▂▂▂▂▂▁▂▂▂ ▃
+  22.5 μs         Histogram: frequency by time           28 μs &lt;
+
+ Memory estimate: 2.16 KiB, allocs estimate: 39.</code></pre><p>这样，最终的结果跟CUBLAS的性能基本一致了。</p><p>从代码层面上讲，上面的代码还可以进一步简化下，上面的while循环其实是一个经典的reduce操作，而<code>CUDA.jl</code>中内置了一个函数<code>reduce_block</code>来简化该操作，下面是简化后的核函数写法：</p><pre><code class="language-julia hljs">    function kernel(x, y, res::AbstractArray{T}, shuffle) where {T}
+        local_val = zero(T)
+
+        # grid-stride loop
+        i = threadIdx().x + (blockIdx().x - 1i32)*blockDim().x
+        while i &lt;= length(x)
+            @inbounds local_val += dot(x[i], y[i])
+            i += blockDim().x * gridDim().x
+        end
+
+        val = reduce_block(+, local_val, zero(T), shuffle)
+        if threadIdx().x == 1i32
+            # NOTE: introduces nondeterminism
+            @inbounds @atomic res[] += val
+        end
+
+        return
+    end</code></pre><div class="code_snippet_title">
+❤️
+Source: <a href="https://github.com/JuliaGPU/CUDA.jl/blob/262c183b6f0480a105e0ca7761e43f435d9eb269/src/linalg.jl#L73-L90">linalg.jl</a>
+❤️
+</div>
+<p>忘了说了，如果你还是one-line solution的爱好者，其实之前的CPU版本的写法在GPU上同样work哦~</p><pre><code class="language-julia hljs">mapreduce((x,y)-&gt;dot(x, y), +, x, y)</code></pre><h2 id="参考"><a class="docs-heading-anchor" href="#参考">参考</a><a id="参考-1"></a><a class="docs-heading-anchor-permalink" href="#参考" title="Permalink"></a></h2><ul><li><a href="https://cuda.juliagpu.org/stable/tutorials/introduction/">Introduction to CUDA.jl</a></li><li><a href="https://www.nvidia.com/content/GTC-2010/pdfs/2131_GTC2010.pdf">GTC-2010</a></li><li><a href="https://github.com/JuliaGPU/CUDA.jl/pull/1240">CUDA.jl#1240</a></li></ul><script src="https://utteranc.es/client.js"
+        repo="findmyway/TianJun.jl"
+        issue-term="url"
+        label="💬Comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script>
+</article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 23 December 2023 15:51">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

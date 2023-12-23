@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>自底向上理解Julia中的并行计算 · Jun Tian</title><meta name="title" content="自底向上理解Julia中的并行计算 · Jun Tian"/><meta property="og:title" content="自底向上理解Julia中的并行计算 · Jun Tian"/><meta property="twitter:title" content="自底向上理解Julia中的并行计算 · Jun Tian"/><meta name="description" content="Documentation for Jun Tian."/><meta property="og:description" content="Documentation for Jun Tian."/><meta property="twitter:description" content="Documentation for Jun Tian."/><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>自底向上理解Julia中的并行计算</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>自底向上理解Julia中的并行计算</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/An_Introduction_to_Parallel_Computing_in_Julia_From_Bottom_Up/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: ParallelComputing,Julia CJKmainfont: KaiTi –-</p><h1 id="自底向上理解Julia中的并行计算"><a class="docs-heading-anchor" href="#自底向上理解Julia中的并行计算">自底向上理解Julia中的并行计算</a><a id="自底向上理解Julia中的并行计算-1"></a><a class="docs-heading-anchor-permalink" href="#自底向上理解Julia中的并行计算" title="Permalink"></a></h1><p>最近看到一些有关Julia并行计算的提问，所以这里不妨开个头，介绍下Julia中并行计算的实现，希望能有更多人能参与进来一起讨论。在Julia文档中，有专门的一部分讲解<a href="https://docs.julialang.org/en/stable/manual/parallel-computing/">Parallel Computing</a>(中文翻译见<a href="http://docs.juliacn.com/latest/manual/parallel-computing/">并行计算</a>)，采用的是一种Top-Down的方式分别介绍了协程、多线程及分布式处理。这里我打算采用一种Bottom-Up的方式来介绍下Julia中的并行计算，建议先读完官方文档后继续往下看。</p><h2 id="几个基本概念"><a class="docs-heading-anchor" href="#几个基本概念">几个基本概念</a><a id="几个基本概念-1"></a><a class="docs-heading-anchor-permalink" href="#几个基本概念" title="Permalink"></a></h2><h3 id="Task"><a class="docs-heading-anchor" href="#Task"><code>Task</code></a><a id="Task-1"></a><a class="docs-heading-anchor-permalink" href="#Task" title="Permalink"></a></h3><p>顾名思义，<code>Task</code>就是构造一段执行任务，<code>Task</code>的定义在<a href="https://github.com/JuliaLang/julia/blob/master/src/task.c">task.c</a>文件中，不过作为使用者，我们更关心的是调用接口：</p><pre><code class="language-julia hljs">julia&gt; methods(Task)
+# 1 method for generic function &quot;(::Type)&quot;:
+[1] Task(f) in Core at boot.jl:377
+
+julia&gt; methodswith(Task)
+[1] bind(c::Channel, task::Task) in Base at channels.jl:191
+[2] serialize(s::Serialization.AbstractSerializer, t::Task) in Serialization at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.0/Serialization/src/Serialization.jl:427
+[3] fetch(t::Task) in Base at task.jl:202
+[4] istaskdone(t::Task) in Base at task.jl:117
+[5] istaskstarted(t::Task) in Base at task.jl:134
+[6] schedule(t::Task) in Base at event.jl:95
+[7] schedule(t::Task, arg) in Base at event.jl:129
+[8] show(io::IO, ::MIME{Symbol(&quot;text/plain&quot;)}, t::Task) in Base at show.jl:150
+[9] show(io::IO, t::Task) in Base at task.jl:58
+[10] wait(t::Task) in Base at task.jl:182
+[11] yield(t::Task) in Base at event.jl:166
+[12] yield(t::Task, x) in Base at event.jl:166
+[13] yieldto(t::Task) in Base at event.jl:181
+[14] yieldto(t::Task, x) in Base at event.jl:181
+
+julia&gt; fieldnames(Task)
+(:parent, :storage, :state, :donenotify, :result, :exception, :backtrace, :logstate, :code)</code></pre><p>task的构造函数只有一个<code>Task(f)</code>，其唯一的一个参数<code>f</code>必须是不带参数的函数，如果传一个带参数的函数，会在真正执行时触发<code>MethodError</code>。</p><pre><code class="language-julia hljs">julia&gt; t = Task((x) -&gt; x + 1)
+Task (runnable) @0x00007f600e180d30
+
+julia&gt; schedule(t)
+Task (failed) @0x00007f600e180d30
+MethodError: no method matching (::getfield(Main, Symbol(&quot;##11#12&quot;)))()
+Closest candidates are:
+  #11(::Any) at REPL[29]:1</code></pre><p>当然，每次都要记得构造一个闭包很傻，有一个<code>@task</code>宏可以用于简化这个过程：</p><pre><code class="language-julia hljs">julia&gt; t = @task println(&quot;Hi&quot;)
+Task (runnable) @0x00007f600f25aa10
+
+julia&gt; schedule(t)
+Hi
+Task (queued) @0x00007f600f25aa10
+
+julia&gt; t
+Task (done) @0x00007f600f25aa10</code></pre><p>上面为了看到一个task的执行结果，我们使用了<code>schedule</code>函数，其作用是将这个runnable的task加入到一个全局的task队列中，然后将task的状态置成<code>:queued</code>，系统在<strong>空闲</strong>时会执行该task（TODO:调度的逻辑），执行结果存在<code>:result</code>字段下，并根据执行结果修改其<code>:state</code>状态（<code>:failed</code>,<code>:done</code>）。不过上面的例子似乎给人一种错觉，在执行完<code>schedule(t)</code>之后，task <code>t</code>立即就执行了，并没有感受到所谓的<strong>等待系统空闲</strong>。下面这个例子用一个计算密集型的任务来验证下：</p><pre><code class="language-julia hljs">t = @task begin 
+    println(&quot;begin task&quot;)
+    inv(rand(2000, 2000))
+    println(&quot;end task&quot;) 
+    end
+
+begin 
+    schedule(t)
+    println(length(Base.Workqueue))
+    println(t.state)
+    println(&quot;begin computing&quot;)
+    println(sum(inv(randn(1500, 1500))))
+    println(&quot;end computing&quot;)
+    println(length(Base.Workqueue))
+    println(t.state)
+end
+
+# 1
+# queued
+# begin computing
+# 97.12983082590253
+# end computing
+# 1
+# queued
+# begin task
+# end task</code></pre><p>可以看到，在<code>schedule(t)</code>之后，<code>t</code>并没有立即被执行，而是被添加到了<code>Base.Workqueue</code>中一直处于<code>queued</code>状态，主流程继续执行，先进行了求逆计算，结束之后，系统再进行task切换，执行<code>t</code>。以上，就是所谓的<strong>并发(Concurrency)</strong>。对于单一进程来说，并发执行计算密集型任务并没有太大收益，不过，对IO密集型任务来说，则非常有用，在等待的过程中，可以切换到其它任务，一旦条件满足，再切回来就执行，这样看起来，似乎是在同时执行多个任务（并发）。Julia对这里所谓的条件提供了一个统一的概念，称为<code>Condition()</code>:</p><pre><code class="language-julia hljs">julia&gt; fieldnames(Condition)
+(:waitq,)</code></pre><p><code>Condition()</code>只有一个类型为<code>Vector</code>的字段<code>:waitq</code>用于记录在等待该条件的所有task，在一个task内部，可以通过执行<code>wait(c::Condition)</code>，声明其正在等待某个条件，然后将自己添加到<code>Base.Workqueue</code>尾部，同时从中取出第一个task并做切换。当条件满足时，通过执行<code>notify(c::Condition)</code>再将这些task重新加入到<code>Base.Workqueue</code>中等待执行。</p><pre><code class="language-julia hljs">julia&gt; c = Condition()
+Condition(Any[])
+
+julia&gt; t = @task begin
+           println(&quot;waiting condition&quot;)
+           wait(c)
+           println(&quot;condition meet&quot;)
+           end
+Task (runnable) @0x00007f2d954c07f0
+
+julia&gt; schedule(t)
+waiting condition
+Task (queued) @0x00007f2d954c07f0
+
+julia&gt; notify(c)
+condition meet
+1</code></pre><p>除了通过执行<code>wait</code>进行task切换之外，还可以通过执行<code>yield()</code>主动进行<code>task</code>的切换（其实也是调用了<code>wait()</code>函数）。</p><pre><code class="language-julia hljs">yield() = (enq_work(current_task()); wait())</code></pre><p>下面看一个<code>yield</code>的例子：</p><pre><code class="language-julia hljs">julia&gt; t1 = @task begin
+       println(&quot;task1 begin&quot;)
+       yield()
+       println(&quot;task1 resumed&quot;)
+       end
+Task (runnable) @0x00007f2d954c2f50
+
+julia&gt; t2 = @task begin
+       println(&quot;task2 begin&quot;)
+       yield()
+       println(&quot;task2 resumed&quot;)
+       end
+Task (runnable) @0x00007f2d954c31f0
+
+julia&gt; begin
+       schedule(t1)
+       schedule(t2)
+       yield()
+       end
+task1 begin
+task2 begin
+task1 resumed
+task2 resumed</code></pre><p>关于task，理解这些基本够用了。一个典型的应用是<code>Timer</code>，其中有个字段<code>:cond</code>就是一个<code>Condition()</code>，每当设定的时间周期到了的时候，就会<code>notify</code>挂在该<code>:cond</code>上的task。另外经常用到的<code>@async</code>宏其实就是先构造了一个task，然后执行了<code>schedule</code>（二合一了）</p><p>下面我们再深入理解一个更有意思的例子。</p><h3 id="Channel"><a class="docs-heading-anchor" href="#Channel"><code>Channel</code></a><a id="Channel-1"></a><a class="docs-heading-anchor-permalink" href="#Channel" title="Permalink"></a></h3><p><code>Channel</code>就是一个通道，不同的task可以从一端往其中写入数据，而另外一些task则可以从另外一端读取数据。<code>Channel</code>的结构很简单：</p><pre><code class="language-julia hljs">mutable struct Channel{T} &lt;: AbstractChannel{T}
+    cond_take::Condition                 # waiting for data to become available
+    cond_put::Condition                  # waiting for a writeable slot
+    state::Symbol
+    excp::Union{Exception, Nothing}         # exception to be thrown when state != :open
+
+    data::Vector{T}
+    sz_max::Int                          # maximum size of channel
+
+    # Used when sz_max == 0, i.e., an unbuffered channel.
+    waiters::Int
+    takers::Vector{Task}
+    putters::Vector{Task}
+end</code></pre><p>其中<code>state</code>字段表示当前channel的状态（<code>:open</code>, <code>:closed</code>）,<code>sz_max</code>则表示channel的长度（该长度可以设为0，~~即无限大~~）。</p><p>对于长度有限的channel来说，执行<code>put!(c, v)</code>写入数据时，如果当前<code>data</code>的长度已经达到了<code>sz_max</code>，则会调用<code>wait()</code>将当前task阻塞，然后每个事件周期都会检查<code>data</code>的长度是否已经小于<code>sz_max</code>，一旦该条件满足，就会往<code>data</code>中写入<code>v</code>，同时通知所有挂在<code>cond_take</code>字段上的task。而执行<code>take!(c)</code>读取数据时，如果当前<code>data</code>中有数据，则取出来，同时通知挂在<code>cond_put</code>上的task，否则，将当前task挂起到<code>cond_take</code>中，等待新的数据。</p><p>对于~~无限长~~长度为0的channel而言，需要用到<code>takers</code>和<code>putters</code>字段。在写入数据时，如果<code>takers</code>为空，就将当前task写入到<code>putters</code>中(然后还会通知<code>cond_take</code>上的task，这类task是通过<code>wait(c)</code>挂在在~~无限长~~channel上的)，否则，从<code>takers</code>中取一个出来<strong>重新</strong>执行（这里用的是<code>yield(t, v)</code>操作）。取数据时，先将自己加入到<code>waiters</code>中，然后判断<code>putters</code>是否为空，若空，则调用<code>wait()</code>将自己挂起，否则从<code>putters</code>中取出一个执行。</p><p>此外，关于<code>Channel</code>有个挺好用的函数<code>Channel(func::Function; ctype=Any, csize=0, taskref=nothing)</code>。关于<code>Channel</code>的例子实在太多了，手册中的那个生产者消费者的例子就挺不错的，这里不列举了。</p><h2 id="多线程"><a class="docs-heading-anchor" href="#多线程">多线程</a><a id="多线程-1"></a><a class="docs-heading-anchor-permalink" href="#多线程" title="Permalink"></a></h2><p>这里暂时先不深入介绍多线程，主要是这个Julia中老大难的问题了，目前的接口仍然是实验性的，此外也有一些PR正在做这方面的事情，建议subscribe一些<a href="https://github.com/JuliaLang/julia/labels/multithreading">multithreading</a>的PR，了解下最新的进展（比如<a href="https://github.com/JuliaLang/julia/pull/22631">这个</a>）</p><h2 id="多进程"><a class="docs-heading-anchor" href="#多进程">多进程</a><a id="多进程-1"></a><a class="docs-heading-anchor-permalink" href="#多进程" title="Permalink"></a></h2><p>前面提到的都还是<strong>并发</strong>，要实现真正的<strong>并行</strong>，需要充分利用多核/多台机器。手册里有提到，Julia实现的并行机制有点类似MPI，不过是单向的（也就是说，有一个master进程负责给其它进程分配执行任务）。所有分布式相关的代码都在Julia源码的<code>stdlib/Distributed</code>package下，接下来我们一步步展开介绍（如果你想在REPL中测试下面的示例代码，记得先执行<code>using Distributed</code>）。</p><p>首先讨论单机多进程的情况。在Julia中，一个工作进程称作一个worker，管理这些worker的进程是<code>LocalProcess</code>（也就是打开REPL后进入的进程）。每个进程都有自己的pid，<code>LocalProcess</code>的pid是<code>1</code>（为了表述方便，以下称其为master）。接下来先回答几个问题：</p><h3 id="1.-如何表示一个work中的对象？"><a class="docs-heading-anchor" href="#1.-如何表示一个work中的对象？">1. 如何表示一个work中的对象？</a><a id="1.-如何表示一个work中的对象？-1"></a><a class="docs-heading-anchor-permalink" href="#1.-如何表示一个work中的对象？" title="Permalink"></a></h3><p>对于master而言，worker中的对象有两种表示，一个是<code>Future</code>，另一个是<code>RemoteChannel</code>。</p><pre><code class="language-julia hljs">mutable struct Future &lt;: AbstractRemoteRef
+    where::Int
+    whence::Int
+    id::Int
+    v::Union{Some{Any}, Nothing}
+end</code></pre><p>其中，<code>where</code>表示<code>v</code>所在的pid，<code>whence</code>和<code>id</code>一般通过<code>RRID</code>生成，分别表示生成该<code>Future</code>对象的进程的pid，而<code>id</code>则是从1开始自增的id。<code>RemoteChannel</code>也类似：</p><pre><code class="language-julia hljs">mutable struct RemoteChannel{T&lt;:AbstractChannel} &lt;: AbstractRemoteRef
+    where::Int
+    whence::Int
+    id::Int
+end</code></pre><h3 id="2.-怎么发起远程调用？"><a class="docs-heading-anchor" href="#2.-怎么发起远程调用？">2. 怎么发起远程调用？</a><a id="2.-怎么发起远程调用？-1"></a><a class="docs-heading-anchor-permalink" href="#2.-怎么发起远程调用？" title="Permalink"></a></h3><p>Julia中，提供了一个底层函数<code>remotecall</code>来实现远程调用，执行后会立即返回一个<code>Future</code>对象，然后可以通过<code>fetch</code>将value写入到<code>Future</code>的<code>v</code>字段中（此时会发生数据转移，也就是导致并行计算性能瓶颈的地方）。例如：</p><pre><code class="language-julia hljs">julia&gt; using Distributed
+
+julia&gt; addprocs()
+4-element Array{Int64,1}:
+ 2
+ 3
+ 4
+ 5
+
+julia&gt; m = remotecall(rand, 5, 2, 2)
+Future(5, 1, 6, nothing)
+
+julia&gt; fetch(m)
+2×2 Array{Float64,2}:
+ 0.109123  0.304667
+ 0.454125  0.197551</code></pre><p>此外，<code>Distributed</code>中还提供了一些工具函数和有用的宏，这里不深入介绍，我们更关心的是：</p><h3 id="3.-什么时候会发生GC？"><a class="docs-heading-anchor" href="#3.-什么时候会发生GC？">3. 什么时候会发生GC？</a><a id="3.-什么时候会发生GC？-1"></a><a class="docs-heading-anchor-permalink" href="#3.-什么时候会发生GC？" title="Permalink"></a></h3><p><code>Distributed</code>中有一个<code>clear!</code>函数用于将worker中的变量置成nothing，不过，如果不引入全局变量的话，大多时候并不需要手动进行该操作。<code>fetch</code>会自动执行<code>send_del_client</code>函数，并通知gc.此外手册里也提到，由于对master来说，一个RemoteReference的内存占用很小，并不会马上被gc，因而可以调用<code>finalize</code>，从而会立即执行<code>send_del_client</code>向worker发送gc信号。</p><p>TODO: 一个分布式并行计算的实例</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 23 December 2023 15:51">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

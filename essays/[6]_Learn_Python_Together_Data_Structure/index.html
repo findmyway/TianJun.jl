@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>（6）一起用python之基础篇——数据结构 · Jun Tian</title><meta name="title" content="（6）一起用python之基础篇——数据结构 · Jun Tian"/><meta property="og:title" content="（6）一起用python之基础篇——数据结构 · Jun Tian"/><meta property="twitter:title" content="（6）一起用python之基础篇——数据结构 · Jun Tian"/><meta name="description" content="Documentation for Jun Tian."/><meta property="og:description" content="Documentation for Jun Tian."/><meta property="twitter:description" content="Documentation for Jun Tian."/><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li><a class="tocitem" href="../../programming/A_Deep_Dive_into_Distributed.jl/">A Deep Dive into Distributed.jl</a></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>（6）一起用python之基础篇——数据结构</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>（6）一起用python之基础篇——数据结构</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/essays/[6]_Learn_Python_Together_Data_Structure/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><hr/><p>keywords: Python CJKmainfont: KaiTi –-</p><h1 id="（6）一起用python之基础篇——数据结构"><a class="docs-heading-anchor" href="#（6）一起用python之基础篇——数据结构">（6）一起用python之基础篇——数据结构</a><a id="（6）一起用python之基础篇——数据结构-1"></a><a class="docs-heading-anchor-permalink" href="#（6）一起用python之基础篇——数据结构" title="Permalink"></a></h1><p>(撰写中。。。呃，写着写着，发觉其实原书写得很系统，一环扣一环，我这样子抽出来一点点地分析反而打乱了原有的结构。我这里写的，大致看下就好，不多说了，反正如果学习Python和数据结构的话，这本书非常非常推荐！）</p><h2 id="写在前面"><a class="docs-heading-anchor" href="#写在前面">写在前面</a><a id="写在前面-1"></a><a class="docs-heading-anchor-permalink" href="#写在前面" title="Permalink"></a></h2><p>本来，这部分计划在几个月前就完成的，无奈这中间忙其它事去了，断断续续地写了一点点。现在刚好闲下来了，争取正式在实验室开始干活之前把这部分写完。加油~</p><p>依照以往学习编程语言的经验，在熟悉了语言的基本语法和标准库的应用后，需要进一步深入到底层基本数据结构。一方面深入理解python中常用的数据类型是怎么实现的，另一方面通过自己实现这些基本数据结构来掌握python中类的写法。</p><p>于是我大致找了一下python下数据结构方面的书，对比后发现<a href="http://book.douban.com/subject/10607365/ ">Data Structures and Algorithms in Python</a>这本书灰常好。其优点在于，非常适合本人的学习路线（粗略熟悉了python的使用，但是缺乏深入了解），而且本书的前面几章提供了很好的过渡。此外，对于各种类型的数据结构，作者都提供了完整的实现，可以说是学习的典范。当然，要说不足之处，就是最后图论部分内容稍微简略了一些。不过，考虑到本书已经七百多页，这部分从简是有道理的。个人觉得本书更侧重于数据结构部分，如果你只是想学习怎样用python实现基本的算法，可以参考这本书<a href="http://book.douban.com/subject/4915945/">Python Algorithms - Mastering Basic Algorithms in the Python Language</a>,胡家威同学写了个系列的，很值得一看<a href="http://hujiaweibujidao.github.io/python/">http://hujiaweibujidao.github.io/python/</a>。</p><h2 id="导读"><a class="docs-heading-anchor" href="#导读">导读</a><a id="导读-1"></a><a class="docs-heading-anchor-permalink" href="#导读" title="Permalink"></a></h2><p>以下内容可以看做是Data Structures and Algorithms in Python这本书的导读。我会指出各章节中的一些亮点和核心内容。</p><ul><li><a href="#ch1">Ch1 Python 基础知识</a></li></ul><blockquote><p>这部分对Python的基本语法做了一个简单的描述，主要目的是让本书的读者在一个相同的起跑线上，方便后面的内容展开。</p></blockquote><ul><li><a href="#ch2">Ch2 面向对象编程</a></li></ul><blockquote><p>首先谈到了面向对象的设计模式，然后以一个例子讲解了Python中如何定义一个类，以及类与类之间的继承关系。最后介绍了Python中类内的变量管理。</p></blockquote><ul><li>Ch3 算法分析基础</li></ul><blockquote><p>这部分几乎是算法书必备的内容。介绍如何分析算法的复杂度。</p></blockquote><ul><li><a href="#ch4">Ch4 递归</a></li></ul><blockquote><p>在开始讲数据结构之前，作者先介绍了一下递归的思想，个人感觉这个章节的安排稍微有些唐突，不过，也算是为后面做铺垫吧。作者对于递归的分类很有启发意义。</p></blockquote><ul><li><a href="#ch5">Ch5 基于Array的序列</a></li></ul><blockquote><p>忘掉Python下常用的list等等数据结构吧，作者先从最最基础的ctypes下的array结构开始构造类似于list的动态序列数据类型。这将为大家理解list类型奠定良好基础。C语言基础很好的话理解起来会很快。</p></blockquote><ul><li>Ch6 栈、队列与双向队列</li></ul><blockquote><p>作者从ADT（Abstract Data Type）出发，在前面实现的基于Array的序列基础上，实现了栈、队列、双向队列这三种数据结构。</p></blockquote><ul><li>Ch7 链表</li></ul><blockquote><p>该部分将前面已经实现的三种数据结构糅合在一起，在介绍了链表后，通过链表来实现上一章提到的集中数据结构。</p></blockquote><ul><li>Ch8 树</li></ul><blockquote><p>从树，再到二叉树，然后深入其中，借用Array序列和链表来实现树这个类。最后介绍了遍历树的简单算法。</p></blockquote><ul><li>Ch9 优先队列</li></ul><blockquote><p>同样，这部分先是介绍了优先队列后，分别用有序列表和无序列表实现了优先队列。然后由此引出了堆。再根据优先队列中的排序问题分别分析了选择排序、插入排序以及堆排序。</p></blockquote><ul><li>Ch10 Map、哈希表以及跳表</li></ul><blockquote><p>这部分内容的重点是介绍了Hash的思想。此外作者跳出Python下常用的字典类型，对Map进行了不同的分类并实现。</p></blockquote><ul><li>Ch11 搜索树</li></ul><blockquote><p>这部分内容主要围绕平衡树展开，介绍了AVL、红黑树等等。</p></blockquote><ul><li>Ch12 排序与选择</li></ul><blockquote><p>尽管前面已经提到了集中排序算法，这里作者补充了并排、快排以及桶排序等等算法并做了比较。</p></blockquote><ul><li>Ch13 文本处理</li></ul><blockquote><p>该部分主要是字符串查找的优化，重点分析了动态问题编程的思想。该部分还介绍了trie树（字典树）</p></blockquote><ul><li>Ch14 图</li></ul><blockquote><p>该部分虽然简短，但覆盖面广，包含了图的结构、图的遍历、最短路径以及最小生成树等等。需要参考其他书作为补充。</p></blockquote><ul><li>Ch15 内存管理与B树</li></ul><blockquote><p>介绍了Python中内存管理体系（内存分配，垃圾回收，缓存机制等等），并介绍了B树。</p></blockquote><h2 id="Ch1-Python基础知识"><a class="docs-heading-anchor" href="#Ch1-Python基础知识">Ch1 Python基础知识</a><a id="Ch1-Python基础知识-1"></a><a class="docs-heading-anchor-permalink" href="#Ch1-Python基础知识" title="Permalink"></a></h2><p>这部分可以看做是个导读，都是一些比较基础的部分。在这里我指出几个需要格外注意的地方，算是备忘吧。</p><h3 id="&quot;&quot;操作对不同数据类型的影响-【16页】"><a class="docs-heading-anchor" href="#&quot;&quot;操作对不同数据类型的影响-【16页】">&quot;+=&quot;操作对不同数据类型的影响 【16页】</a><a id="&quot;&quot;操作对不同数据类型的影响-【16页】-1"></a><a class="docs-heading-anchor-permalink" href="#&quot;&quot;操作对不同数据类型的影响-【16页】" title="Permalink"></a></h3><p>对于list类型，<span>$+=$</span>操作相当于list的extend方法，</p><pre><code class="language-python hljs">In [1]: a = [1,2]
+
+In [2]: id(a)
+Out[2]: 139898553654536
+
+In [3]: a += [3,4]
+
+In [4]: id(a)
+Out[4]: 139898553654536
+
+In [5]: a
+Out[5]: [1, 2, 3, 4]
+
+In [6]: a.extend([5,6])
+
+In [7]: a
+Out[7]: [1, 2, 3, 4, 5, 6]
+
+In [8]: id(a)
+Out[8]: 139898553654536
+
+In [27]: a = a + [7,8]
+
+In [28]: a
+Out[28]: [1, 2, 3, 4, 5, 6, 7, 8]
+
+In [29]: id(a)
+Out[29]: 139898553711688</code></pre><p>如上所示,注意前面的<span>$+=$</span>操作和<span>$extend$</span> 对id(a)都没有影响,也就是说变量a的内存地址没有发生变化.但是<span>$=$</span>重新赋值时会重新开辟新的内存来存储新的数据.由此引出一个关于<span>$+=$</span>操作符的经典效率问题.</p><pre><code class="language-python hljs">In [48]: %%timeit -n 100
+   ....: a = []
+   ....: for i in range(10 **3):
+   ....:     a = a + [i]
+   ....: 
+100 loops, best of 3: 1.45 ms per loop
+
+In [49]: %%timeit -n 100
+   ....: a = []
+   ....: for i in range(10 **3):
+   ....:     a += [i]
+   ....: 
+100 loops, best of 3: 114 µs per loop</code></pre><p>对于str这类immutable类型的变量, <span>$+=$</span>操作实际就是先对字符串拼接后再重新赋值.因而会涉及到重新分配存储空间的过程.</p><pre><code class="language-python hljs">In [13]: s = &#39;ab&#39;
+
+In [14]: id(s)
+Out[14]: 139898582654064
+
+In [15]: s += &#39;cd&#39;
+
+In [16]: s
+Out[16]: &#39;abcd&#39;
+
+In [17]: id(s)
+Out[17]: 139898553628352
+
+#对比下字符串类型 += 操作 和 = 操作的效率可以发现,二者差不多
+
+[56]: %%timeit
+   ....: a = &#39;&#39;
+   ....: for i in range(10 **3):
+   ....:     a = a + str(i)
+   ....: 
+1000 loops, best of 3: 274 µs per loop
+
+In [57]: %%timeit
+   ....: a = &#39;&#39;
+   ....: for i in range(10 **3):
+   ....:     a += str(i)
+   ....: 
+1000 loops, best of 3: 273 µs per loop</code></pre><h3 id="迭代过程中改变原始数据-【39页】"><a class="docs-heading-anchor" href="#迭代过程中改变原始数据-【39页】">迭代过程中改变原始数据 【39页】</a><a id="迭代过程中改变原始数据-【39页】-1"></a><a class="docs-heading-anchor-permalink" href="#迭代过程中改变原始数据-【39页】" title="Permalink"></a></h3><p>这里只是简单的提到了一点,在for循环中改变<span>$list$</span>中的值时会对后面的循环过程有影响.举例来说:</p><pre><code class="language-python hljs">In [5]: a = [0,1,2]
+
+In [6]: for i,x in enumerate(a):
+    print(&#39;a before change: &#39;, a)
+    print(&#39;i = &#39;,i,&#39;x = &#39;, x)
+    a[(i+1)%len(a)] = -1
+    print(&#39;a after change: &#39;, a)
+    print(&#39;--------------------------&#39;)
+    ...:     
+
+a before change:  [0, 1, 2]
+i =  0 x =  0
+a after change:  [0, -1, 2]
+--------------------------
+a before change:  [0, -1, 2]
+i =  1 x =  -1
+a after change:  [0, -1, -1]
+--------------------------
+a before change:  [0, -1, -1]
+i =  2 x =  -1
+a after change:  [-1, -1, -1]
+--------------------------</code></pre><p>不过,除了更改之外,还有添加删除操作(如pop, remove, del等),但是,在这一点上,<span>$list$</span>和<span>$dict$</span>,<span>$set$</span>的表现很不一样.在遍历过程中,如果删除<span>$list$</span>的元素,并不会让遍历过程终止,删除某一元素后,后面的元素会向前移动并填补空缺(这在学习了ArrayBased Sequence后更容易理解),遍历的过程继续.如下所示:</p><pre><code class="language-python hljs">In [10]: a = list(range(10))
+
+In [11]: for x in a:
+   ....:     print(x, end=&#39; &#39;)
+   ....:     if x == 5:
+   ....:         a.remove(0)
+   ....:         
+0 1 2 3 4 5 7 8 9 </code></pre><p>但是,如果在遍历dict和set时删除了某些元素则会引发Runtime Error</p><pre><code class="language-python hljs">In [15]: a = {1:1,2:2}
+
+In [16]: for x in a:
+   ....:     a.pop(x)
+   ....:     
+---------------------------------------------------------------------------
+RuntimeError                              Traceback (most recent call last)
+&lt;ipython-input-16-c44bba0d19b6&gt; in &lt;module&gt;()
+----&gt; 1 for x in a:
+      2     a.pop(x)
+      3 
+
+RuntimeError: dictionary changed size during iteration</code></pre><p>究其原因,可能是因为list结构采用的类似数组的实现方式,删除某一元素后,后面的元素可以对其填补.而set和dict采用的时链表一类的结构,删除某一元素后会导致结构不稳定(具体我还没找到).解决的办法一般时构造新的字典或者集合.</p><p>##Ch2</p><h3 id="is关键字【76页】"><a class="docs-heading-anchor" href="#is关键字【76页】"><span>$is$</span>关键字【76页】</a><a id="is关键字【76页】-1"></a><a class="docs-heading-anchor-permalink" href="#is关键字【76页】" title="Permalink"></a></h3><p>判断两个对象是否相同,一般有两种做法,<span>$a is b$</span> 和 <span>$a == b$</span>,这二者时有区别的. <span>$a is b$</span>用来判断两个变量是否绑定的同一个对象,而<span>$a == b$</span>则是调用两个变量的<span>$__eq__$</span>方法,根据具体的实现有不同的意义.比如下面的例子:</p><pre><code class="nohighlight hljs">:::python
+In [17]: a = [1,2,3]
+
+In [18]: b = a
+
+In [19]: c = a[:]
+
+In [20]: a is b
+Out[20]: True
+
+In [21]: a == b
+Out[21]: True
+
+In [22]: a is c
+Out[22]: False
+
+In [23]: a == c
+Out[23]: True</code></pre><p>此外还有</p><pre><code class="nohighlight hljs">:::python
+In [24]: 0 == False
+Out[24]: True
+
+In [25]: 0 is False
+Out[25]: False</code></pre><p>也就是说, <span>$is$</span> 和 <span>$==$</span>之间没有必然联系</p><p>最后还有个更奇葩的......</p><pre><code class="nohighlight hljs">:::python
+In [26]: a = 1
+
+In [27]: b = 1
+
+In [28]: a is b
+Out[28]: True
+
+In [29]: a = 111111111111111111111111111111111111111111111
+
+In [30]: b = 111111111111111111111111111111111111111111111
+
+In [31]: a is b
+Out[31]: False
+
+In [32]: a == b
+Out[32]: True</code></pre><p>这一点在以前提到过,数字很小的1被缓存了,所以地址相同,从而当a和b都是1的时候,<span>$a is b$</span> 的值是 True</p><h2 id="Ch4-递归"><a class="docs-heading-anchor" href="#Ch4-递归">Ch4 递归</a><a id="Ch4-递归-1"></a><a class="docs-heading-anchor-permalink" href="#Ch4-递归" title="Permalink"></a></h2><p>递归的核心就是3步.</p><ol><li>判断终止条件</li><li>计算具有共性的那部分</li><li>收缩计算范围,使其趋于终止条件</li></ol><p>在最后的部分([169页]),作者总结前面的递归例子后,将递归分这么三类,区别在于上面的第二步出现条件判断,从而发生多次回调行为:</p><ul><li><p>线性递归(Linear recursion):最多只有一次函数回调</p></li><li><p>二分递归(Binary recursion):函数体内部有两次回调</p></li><li><p>多路递归(Multiple recursion):函数体内部有超过两次的回调</p></li></ul><p>线性递归的最简单例子是,求阶乘以及求和等.例如:</p><pre><code class="language-python hljs">def linear sum(S, n):
+    ”””Return the sum of the first n numbers of sequence S.”””
+    if n == 0:
+        return 0
+    else:
+        return linear sum(S, n−1) + S[n−1]</code></pre><p>一般来说,线性递归可以很容易转换成循环去求解.(建议转换成循环,避免出现runtime error,python对递归的深度有限制,这点在文中有提到)</p><p>二分递归最常见,就是用于二分搜索.</p><p>多路递归,(我表示木有理解到精髓...)</p><h2 id="Ch5-列表"><a class="docs-heading-anchor" href="#Ch5-列表">Ch5 列表</a><a id="Ch5-列表-1"></a><a class="docs-heading-anchor-permalink" href="#Ch5-列表" title="Permalink"></a></h2><p>列表这部分，作者使用ctypes下的py_object 作为基础。借用一个resize方法，实现了存储空间的动态增长。</p><p>关于列表最重要的一部分是理解下图，由于前面的系列文章里对列表的分析较多，不再赘述。</p><pre><code class="language-python hljs">#该部分源自书中的源码    
+import ctypes                                      # provides low-level arrays
+
+class DynamicArray:
+  &quot;&quot;&quot;A dynamic array class akin to a simplified Python list.&quot;&quot;&quot;
+
+  def __init__(self):
+    &quot;&quot;&quot;Create an empty array.&quot;&quot;&quot;
+    self._n = 0                                    # count actual elements
+    self._capacity = 1                             # default array capacity
+    self._A = self._make_array(self._capacity)     # low-level array
+    
+  def __len__(self):
+    &quot;&quot;&quot;Return number of elements stored in the array.&quot;&quot;&quot;
+    return self._n
+    
+  def __getitem__(self, k):
+    &quot;&quot;&quot;Return element at index k.&quot;&quot;&quot;
+    if not 0 &lt;= k &lt; self._n:
+      raise IndexError(&#39;invalid index&#39;)
+    return self._A[k]                              # retrieve from array
+  
+  def append(self, obj):
+    &quot;&quot;&quot;Add object to end of the array.&quot;&quot;&quot;
+    if self._n == self._capacity:                  # not enough room
+      self._resize(2 * self._capacity)             # so double capacity
+    self._A[self._n] = obj
+    self._n += 1
+
+  def _resize(self, c):                            # nonpublic utitity
+    &quot;&quot;&quot;Resize internal array to capacity c.&quot;&quot;&quot;
+    B = self._make_array(c)                        # new (bigger) array
+    for k in range(self._n):                       # for each existing value
+      B[k] = self._A[k]
+    self._A = B                                    # use the bigger array
+    self._capacity = c
+
+  def _make_array(self, c):                        # nonpublic utitity
+     &quot;&quot;&quot;Return new array with capacity c.&quot;&quot;&quot;   
+     return (c * ctypes.py_object)()               # see ctypes documentation
+
+  def insert(self, k, value):
+    &quot;&quot;&quot;Insert value at index k, shifting subsequent values rightward.&quot;&quot;&quot;
+    # (for simplicity, we assume 0 &lt;= k &lt;= n in this verion)
+    if self._n == self._capacity:                  # not enough room
+      self._resize(2 * self._capacity)             # so double capacity
+    for j in range(self._n, k, -1):                # shift rightmost first
+      self._A[j] = self._A[j-1]
+    self._A[k] = value                             # store newest element
+    self._n += 1
+
+  def remove(self, value):
+    &quot;&quot;&quot;Remove first occurrence of value (or raise ValueError).&quot;&quot;&quot;
+    # note: we do not consider shrinking the dynamic array in this version
+    for k in range(self._n):
+      if self._A[k] == value:              # found a match!
+        for j in range(k, self._n - 1):    # shift others to fill gap
+          self._A[j] = self._A[j+1]
+        self._A[self._n - 1] = None        # help garbage collection
+        self._n -= 1                       # we have one less item
+        return                             # exit immediately
+    raise ValueError(&#39;value not found&#39;)    # only reached if no match</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 23 December 2023 15:51">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en-US"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>A Deep Dive into Distributed.jl · Jun Tian</title><meta name="title" content="A Deep Dive into Distributed.jl · Jun Tian"/><meta property="og:title" content="A Deep Dive into Distributed.jl · Jun Tian"/><meta property="twitter:title" content="A Deep Dive into Distributed.jl · Jun Tian"/><meta name="description" content="Documentation for Jun Tian."/><meta property="og:description" content="Documentation for Jun Tian."/><meta property="twitter:description" content="Documentation for Jun Tian."/><script async src="https://www.googletagmanager.com/gtag/js?id=UA-132847825-3"></script><script>  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-132847825-3', {'page_path': location.pathname + location.search + location.hash});
+</script><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="Jun Tian logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Jun Tian</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">👋 About</a></li><li><span class="tocitem">💻 Programming</span><ul><li class="is-active"><a class="tocitem" href>A Deep Dive into Distributed.jl</a><ul class="internal"><li><a class="tocitem" href="#1.-How-to-initialize-Distributed.jl?"><span>1. How to initialize <code>Distributed.jl</code>?</span></a></li><li><a class="tocitem" href="#2.-How-are-the-workers-created?"><span>2. How are the workers created?</span></a></li><li><a class="tocitem" href="#3.-How-do-workers-communicate?"><span>3. How do workers communicate?</span></a></li><li><a class="tocitem" href="#Is-Distributed.jl-perfect?"><span>Is <code>Distributed.jl</code> perfect?</span></a></li></ul></li></ul></li><li><span class="tocitem">📖 Reading</span><ul><li><a class="tocitem" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning</a></li></ul></li><li><a class="tocitem" href="../../AMA/">🙋 Ask Me Anything</a></li><li><a class="tocitem" href="../../blogroll/">🔗 Blogroll</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">💻 Programming</a></li><li class="is-active"><a href>A Deep Dive into Distributed.jl</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>A Deep Dive into Distributed.jl</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/findmyway/TianJun.jl/blob/master/docs/src/programming/A_Deep_Dive_into_Distributed.jl/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="A-Deep-Dive-into-Distributed.jl"><a class="docs-heading-anchor" href="#A-Deep-Dive-into-Distributed.jl">A Deep Dive into Distributed.jl</a><a id="A-Deep-Dive-into-Distributed.jl-1"></a><a class="docs-heading-anchor-permalink" href="#A-Deep-Dive-into-Distributed.jl" title="Permalink"></a></h1><div class=blogmeta><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='150' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='150' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='75' height='20' fill='#555'/><rect x='75' width='75' height='20' fill='#97C40F'/><rect width='150' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='385' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='650'>Last Update</text><text x='385' y='140' transform='scale(.1)' textLength='650'>Last Update</text><text x='1115' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='650'>2021-12-06</text><text x='1115' y='140' transform='scale(.1)' textLength='650'>2021-12-06</text></g></svg><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='122' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='122' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='47' height='20' fill='#555'/><rect x='47' width='75' height='20' fill='#4c1'/><rect width='122' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='245' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='370'>Create</text><text x='245' y='140' transform='scale(.1)' textLength='370'>Create</text><text x='835' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='650'>2021-08-20</text><text x='835' y='140' transform='scale(.1)' textLength='650'>2021-08-20</text></g></svg><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='154' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='154' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='19' height='20' fill='#555'/><rect x='19' width='135' height='20' fill='#0F80C1'/><rect width='154' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='105' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='90'>#</text><text x='105' y='140' transform='scale(.1)' textLength='90'>#</text><text x='855' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='1250'>Distributed Computing</text><text x='855' y='140' transform='scale(.1)' textLength='1250'>Distributed Computing</text></g></svg><svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='54' height='20'><linearGradient id='s' x2='0' y2='100%'><stop offset='0' stop-color='#bbb' stop-opacity='.1'/><stop offset='1' stop-opacity='.1'/></linearGradient><clipPath id='r'><rect width='54' height='20' rx='3' fill='#fff'/></clipPath><g clip-path='url(#r)'><rect width='19' height='20' fill='#555'/><rect x='19' width='35' height='20' fill='#0F80C1'/><rect width='54' height='20' fill='url(#s)'/></g><g fill='#fff' text-anchor='middle' font-family='Verdana,Geneva,DejaVu Sans,sans-serif' text-rendering='geometricPrecision' font-size='110'><text x='105' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='90'>#</text><text x='105' y='140' transform='scale(.1)' textLength='90'>#</text><text x='355' y='150' fill='#010101' fill-opacity='.3' transform='scale(.1)' textLength='250'>Julia</text><text x='355' y='140' transform='scale(.1)' textLength='250'>Julia</text></g></svg></div><iframe src="slide/index.html" style="width: 100%;height: 50vh"></iframe><p><a href="slide/index.html">slide</a></p><p><a href="https://docs.julialang.org/en/v1/stdlib/Distributed/">Distributed.jl</a> is a standard library in Julia to do multi-processing and distributed computing. The <a href="https://docs.julialang.org/en/v1/manual/distributed-computing/">distributed-computing</a> section in the official julia docs already provides a nice introduction on how to use it. I assume most of you have skimmed through it. So here I&#39;ll mainly focus on how this package is designed and implemented, hoping that you&#39;ll have a better understanding after this talk.</p><p>My talk will be organized in the Q&amp;A style. So feel free to raise more questions in the end of this talk if anything is still unclear to you.</p><h2 id="1.-How-to-initialize-Distributed.jl?"><a class="docs-heading-anchor" href="#1.-How-to-initialize-Distributed.jl?">1. How to initialize <code>Distributed.jl</code>?</a><a id="1.-How-to-initialize-Distributed.jl?-1"></a><a class="docs-heading-anchor-permalink" href="#1.-How-to-initialize-Distributed.jl?" title="Permalink"></a></h2><p>The easiest way is to start the <code>julia</code> with an extra parameter <code>-p auto</code>. Then based on the number of logical cores on your machine, the same number of julia processors will be created and connected on your machine. Or you can specify the number explicitly.</p><pre><code class="nohighlight hljs">
+                         ┌─────────────┐
+                    ┌────► myid() == 2 │
+                    │    └─────────────┘
+ ┌─────────────┐    │
+ │ julia -p 3  │    │    ┌─────────────┐
+ │             ├────┼────► myid() == 3 │
+ │ myid() == 1 │    │    └─────────────┘
+ └─────────────┘    │
+                    │    ┌─────────────┐
+                    └────► myid() == 4 │
+                         └─────────────┘
+</code></pre><p>To create multiple processors, we can provide a file like this:</p><pre><code class="language-julia hljs">println(run(`cat $(joinpath(@__DIR__, &quot;local_machines&quot;))`))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2*127.0.0.1
+2*127.0.0.1</code></pre><p>And set it to the <code>--machine-file</code> argument. In the above file, we use the localhost <code>127.0.0.1</code> for simplicity.</p><pre><code class="nohighlight hljs">
+
+                                             ┌─────────────┐
+                                          ┌──► myid() == 2 │
+                              ┌────────┐  │  └─────────────┘
+                           ┌──► Node 1 ├──┤
+                           │  └────────┘  │  ┌─────────────┐
+                           │              └──► myid() == 3 │
+                           │                 └─────────────┘
+ ┌──────────────────────┐  │
+ │ julia --machine-file │  │
+ │                      ├──┤
+ │     myid() == 1      │  │                 ┌─────────────┐
+ └──────────────────────┘  │              ┌──► myid() == 4 │
+                           │  ┌────────┐  │  └─────────────┘
+                           └──► Node 2 ├──┤
+                              └────────┘  │  ┌─────────────┐
+                                          └──► myid() == 5 │
+                                             └─────────────┘</code></pre><p>Of course, you can also set them dynamically with <a href="https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.addprocs"><code>addprocs</code></a>.</p><h3 id="1.1-Why-is-there-an-extra-processor-created?"><a class="docs-heading-anchor" href="#1.1-Why-is-there-an-extra-processor-created?">1.1 Why is there an extra processor created?</a><a id="1.1-Why-is-there-an-extra-processor-created?-1"></a><a class="docs-heading-anchor-permalink" href="#1.1-Why-is-there-an-extra-processor-created?" title="Permalink"></a></h3><p>It&#39;s mentioned in the <a href="https://docs.julialang.org/en/v1/manual/distributed-computing/">distributed-computing</a> section from the official doc that:</p><blockquote><p>Communication in Julia is generally &quot;one-sided&quot;, meaning that the programmer needs to explicitly manage only one process in a two-process operation.</p></blockquote><p>This means that, by design the processor we created to launch workers will serve as the header. Its main goal is to dispatch jobs to workers instead of doing computing on its own. So in most cases, we just execute code on the header and tell workers what they need to do. That is what &quot;one-sided&quot; means above.</p><p>So the header processor is just the extra one we created.</p><h2 id="2.-How-are-the-workers-created?"><a class="docs-heading-anchor" href="#2.-How-are-the-workers-created?">2. How are the workers created?</a><a id="2.-How-are-the-workers-created?-1"></a><a class="docs-heading-anchor-permalink" href="#2.-How-are-the-workers-created?" title="Permalink"></a></h2><p>This can be narrowed down to several more specific questions. But before answering them, let&#39;s see what&#39;s happening when we load the package with <code>using Distributed</code> first.</p><pre><code class="language-julia hljs">function __init__()
+    init_parallel()
+end</code></pre><div class="code_snippet_title">
+❤️
+Source: <a href="https://github.com/JuliaLang/julia/blob/00734c5fd045316a00d287ca2c0ec1a2eef6e4d1/stdlib/Distributed/src/Distributed.jl#L111-L113">Distributed.jl</a>
+❤️
+</div>
+<pre><code class="language-julia hljs">function init_parallel()
+    start_gc_msgs_task()
+
+    # start in &quot;head node&quot; mode, if worker, will override later.
+    global PGRP
+    global LPROC
+    LPROC.id = 1
+    @assert isempty(PGRP.workers)
+    register_worker(LPROC)
+end</code></pre><div class="code_snippet_title">
+❤️
+Source: <a href="https://github.com/JuliaLang/julia/blob/00734c5fd045316a00d287ca2c0ec1a2eef6e4d1/stdlib/Distributed/src/cluster.jl#L1303-L1312">cluster.jl</a>
+❤️
+</div>
+<p>Let&#39;s ignore the first line for now. We&#39;ll discuss <code>start_gc_msgs_task</code> later. Two important global variables are initialized here, the first one is <code>LPROC</code> (Local Processor for short), which serves like an identifier of the current processor. The second one is <code>PGRP</code>, (Processor Group for short). It records the workers we&#39;ll create later. It will be initialized with the only one element <code>LPROC</code> here. And that&#39;s why you&#39;ll see only one worker with id <code>1</code> is returned from <code>workers()</code>.</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; using Distributed</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; workers()</code><code class="nohighlight hljs ansi" style="display:block;">1-element Vector{Int64}:
+ 1</code></pre><p>The function to create workers is provided by <a href="https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.addprocs"><code>addprocs</code></a>. By default, it will be dispatched to <code>addprocs_locked(manager::ClusterManager; kw...)</code> (Here <code>ClusterManager</code> is an abstract type, we&#39;ll introduce two typical implementations in <code>Distributed.jl</code> soon). Since two main public APIs are involved in its implementation, let&#39;s examine the code in detail here:</p><pre><code class="language-julia hljs">    t_launch = @async launch(manager, params, launched, launch_ntfy)
+
+    @sync begin
+        while true
+            if isempty(launched)
+                istaskdone(t_launch) &amp;&amp; break
+                @async (sleep(1); notify(launch_ntfy))
+                wait(launch_ntfy)
+            end
+
+            if !isempty(launched)
+                wconfig = popfirst!(launched)
+                let wconfig=wconfig
+                    @async setup_launched_worker(manager, wconfig, launched_q)
+                end
+            end
+        end
+    end</code></pre><div class="code_snippet_title">
+❤️
+Source: <a href="https://github.com/JuliaLang/julia/blob/00734c5fd045316a00d287ca2c0ec1a2eef6e4d1/stdlib/Distributed/src/cluster.jl#L485-L502">cluster.jl</a>
+❤️
+</div>
+<p>First, it tries to call the <a href="https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.launch"><code>launch</code></a> method implemented by specific <code>ClusterManager</code> asynchronously. Then the main task will periodically check whether the <code>launch</code> task has been finshed or not every second. If not, it&#39;ll try to setup the the connection with workers which has already been added into <code>launched</code> by the <code>ClusterManager</code>. Note that the outer <code>@sync</code> will guarantee all the <code>setup_launched_worker</code> calls are finished (all connections between header and worker are initialized).</p><p>So what should <code>launch</code> do? As the doc says:</p><blockquote><p>launch(manager::ClusterManager, params::Dict, launched::Array, launch_ntfy::Condition)</p><p>Implemented by cluster managers. For every Julia worker launched by this function, it should append a <code>WorkerConfig</code> entry to <code>launched</code> and notify <code>launch_ntfy</code>. The function MUST exit once all workers, requested by <code>manager</code> have been launched. <code>params</code> is a dictionary of all keyword arguments <code>addprocs</code> was called with.</p></blockquote><p>But what is <code>WorkerConfig</code>? Its definition in <code>Distributed.jl</code> is specifically tight with two <code>ClusterManager</code> and we&#39;ll discuss soon. Basically it describes where and how the header should send messages to (Like a IO stream, or a http connection). Once the <code>ClusterManager</code> has finished initializing the worker processor, we need to register this worker in the header:</p><ol><li>Figure out where to read messages from (<code>r_s</code>) and write messages to (<code>w_s</code>) worker.</li><li>Bind the <code>finalizer</code> of the worker to tell its cluster manager when it&#39;s finalized.</li><li>Create an async task to handle messages from the worker.</li><li>Send the header&#39;s information to worker so that the worker knows where the header is and how to send messages.</li><li>Wait until the worker confirms and joins the cluster. Otherwise, remove it if time is out.</li></ol><h3 id="2.1-How-are-workers-created-on-my-local-machine?"><a class="docs-heading-anchor" href="#2.1-How-are-workers-created-on-my-local-machine?">2.1 How are workers created on my local machine?</a><a id="2.1-How-are-workers-created-on-my-local-machine?-1"></a><a class="docs-heading-anchor-permalink" href="#2.1-How-are-workers-created-on-my-local-machine?" title="Permalink"></a></h3><pre><code class="language-julia hljs">function launch(manager::LocalManager, params::Dict, launched::Array, c::Condition)
+    dir = params[:dir]
+    exename = params[:exename]
+    exeflags = params[:exeflags]
+    bind_to = manager.restrict ? `127.0.0.1` : `$(LPROC.bind_addr)`
+
+    for i in 1:manager.np
+        cmd = `$(julia_cmd(exename)) $exeflags --bind-to $bind_to --worker`
+        io = open(detach(setenv(cmd, dir=dir)), &quot;r+&quot;)
+        write_cookie(io)
+
+        wconfig = WorkerConfig()
+        wconfig.process = io
+        wconfig.io = io.out
+        wconfig.enable_threaded_blas = params[:enable_threaded_blas]
+        push!(launched, wconfig)
+    end
+
+    notify(c)
+end</code></pre><div class="code_snippet_title">
+❤️
+Source: <a href="https://github.com/JuliaLang/julia/blob/00734c5fd045316a00d287ca2c0ec1a2eef6e4d1/stdlib/Distributed/src/managers.jl#L460-L479">managers.jl</a>
+❤️
+</div>
+<p>Pretty straightforward, right? A new julia processor is created and then a worker config is properly set. But how does this new processor handle new messages sent from sender or other workers? Note that there&#39;s an extra option <code>--worker</code> in the <code>cmd</code>.</p><pre><code class="language-julia hljs">    distributed_mode = (opts.worker == 1) || (opts.nprocs &gt; 0) || (opts.machine_file != C_NULL)
+    if distributed_mode
+        let Distributed = require(PkgId(UUID((0x8ba89e20_285c_5b6f, 0x9357_94700520ee1b)), &quot;Distributed&quot;))
+            Core.eval(Main, :(const Distributed = $Distributed))
+            Core.eval(Main, :(using .Distributed))
+        end
+
+        invokelatest(Main.Distributed.process_opts, opts)
+    end</code></pre><div class="code_snippet_title">
+❤️
+Source: <a href="https://github.com/JuliaLang/julia/blob/00734c5fd045316a00d287ca2c0ec1a2eef6e4d1/base/client.jl#L254-L262">client.jl</a>
+❤️
+</div>
+<p>With this option, the newly created julia processor will do some extra work for us to have everything properly set. Basically, it will create a new socked connection and handle messages coming in. You can use <code>netstat -tunlp | grep julia</code> to see which ports the workers are using.</p><h3 id="2.2-How-are-workers-created-across-different-machines?"><a class="docs-heading-anchor" href="#2.2-How-are-workers-created-across-different-machines?">2.2 How are workers created across different machines?</a><a id="2.2-How-are-workers-created-across-different-machines?-1"></a><a class="docs-heading-anchor-permalink" href="#2.2-How-are-workers-created-across-different-machines?" title="Permalink"></a></h3><p>To create workers across machines, <code>Distributed.jl</code> provides a SSH based cluster manager. Although the code in the <code>SSHManager</code> looks very complex, the core idea behind is similar to the <code>LocalManager</code>. We run the command to create a julia worker processor through SSH and record the process id. Then we can use this id to kill the worker if required.</p><h3 id="2.3-A-practical-example"><a class="docs-heading-anchor" href="#2.3-A-practical-example">2.3 A practical example</a><a id="2.3-A-practical-example-1"></a><a class="docs-heading-anchor-permalink" href="#2.3-A-practical-example" title="Permalink"></a></h3><p>In <a href="https://github.com/JuliaParallel/ClusterManagers.jl">ClusterManagers.jl</a>, several common cluster managers are provided. You should definitely check it first if the default <code>LocalManager</code> and <code>SSHManager</code> don&#39;t apply in your environment. Now let&#39;s take a close look at an interesting one: <code>ElasticManager</code>.</p><pre><code class="nohighlight hljs">                                 ┌────────┐
+                               ┌─┤ worker │
+                               │ └────────┘
+      ┌─────────────┐ connect  │   ......
+      │ socket      │          │ ┌────────┐
+      │             │◄─────────┼─┤ worker │
+      │   - address │          │ └────────┘
+      │   - port    │          │ ......
+      └────▲───┬────┘          │ ┌────────┐
+           │   │               └─┤ worker │
+           │   │                 └────────┘
+           │   │
+           │   │ received new connection
+    watch  │   │
+  new conn │   │ check cookie
+           │   │
+           │   │ push into
+           │   │
+        ┌──┴───▼──┐
+        │ pending │
+        └────┬────┘
+             │
+             │
+             │
+        ┌────▼─────┐
+        │ addprocs │
+        └──────────┘</code></pre><p>After initialization, the <code>ElasticManageer</code> created two background tasks: the first one is to watch on new connections, and the second one is to add new processors by reusing the <code>addprocs</code> function in <code>Distributed.jl</code>. In the <code>launch</code> step, it simply take take the pending socket and add it into <code>launched</code>. And in the <code>manage</code> step, it simply maintains a dict of active workers.</p><h2 id="3.-How-do-workers-communicate?"><a class="docs-heading-anchor" href="#3.-How-do-workers-communicate?">3. How do workers communicate?</a><a id="3.-How-do-workers-communicate?-1"></a><a class="docs-heading-anchor-permalink" href="#3.-How-do-workers-communicate?" title="Permalink"></a></h2><p>In the above section, we&#39;ve mentioned that a worker processor will run <code>start_worker</code> first after initialization, and then wait for messages. But how are messages encoded and interpreted?</p><pre><code class="nohighlight hljs">
+                  ┌─────────────────────┐
+                  │     .........       │
+                  │ ┌─────────────────┐ │
+                  │ │     BOUNDARY    │ │
+                  │ └─────────────────┘ │
+                  │                     │
+                  │ ┌─────────────────┐ │
+                  │ │ header          │ │
+                  │ │                 │ │
+               ┌──┼─►  * response_oid │ │
+               │  │ │  * notify_oid   │ │
+               │  │ └─────────────────┘ │
+               │  │                     │
+               │  │ ┌─────────────────┐ │
+ ┌──────────┐  │  │ │                 │ │    ┌────────────┐
+ │ send_msg ├──┼──┼─► builtin message ├─┼────► handle_msg │
+ └──────────┘  │  │ │                 │ │    └────────────┘
+               │  │ └─────────────────┘ │
+               │  │                     │
+               │  │ ┌─────────────────┐ │
+               └──┼─►     BOUNDARY    │ │
+                  │ └─────────────────┘ │
+                  │     .........       │
+                  └─────────────────────┘
+</code></pre><p>Messages are serialized into a reader steam seperated by a collection of constant bytes (<code>MSG_BOUNDARY</code>). Each message has two parts, a header and a message body. In <code>Distributed.jl</code>, several predefined types of messages are provided. Each message then be deserialized and dispatched to a specific <code>handle_msg</code> implementation. Each header has exactly two fields, the <code>response_oid</code> and <code>notify_oid</code>. Now we are going to study two key concepts in <code>Distributed.jl</code>: <strong>remote call</strong> and <strong>remote reference</strong>.</p><h3 id="3.1-Remote-reference"><a class="docs-heading-anchor" href="#3.1-Remote-reference">3.1 Remote reference</a><a id="3.1-Remote-reference-1"></a><a class="docs-heading-anchor-permalink" href="#3.1-Remote-reference" title="Permalink"></a></h3><p>In <code>Distributed.jl</code>, each worker has a unique id (<code>myid()</code>). To locate objects created by <code>Distributed.jl</code>, each of them will also have a unique id in that processor.</p><pre><code class="language-julia hljs">const REF_ID = Threads.Atomic{Int}(1)
+next_ref_id() = Threads.atomic_add!(REF_ID, 1)
+
+struct RRID
+    whence::Int
+    id::Int
+
+    RRID() = RRID(myid(), next_ref_id())
+    RRID(whence, id) = new(whence, id)
+end</code></pre><div class="code_snippet_title">
+❤️
+Source: <a href="https://github.com/JuliaLang/julia/blob/00734c5fd045316a00d287ca2c0ec1a2eef6e4d1/stdlib/Distributed/src/Distributed.jl#L87-L96">Distributed.jl</a>
+❤️
+</div>
+<p>As you can see, by default the <code>id</code> is auto-increment. And the <code>whence</code> is set to the current worker. Remember that each <code>AbstractRemoteRef</code> instance must at least contain these two basic id to locate it.</p><p><code>Future</code></p><pre><code class="language-julia hljs">mutable struct Future &lt;: AbstractRemoteRef
+    where::Int
+    whence::Int
+    id::Int
+    v::Union{Some{Any}, Nothing}
+
+    Future(w::Int, rrid::RRID, v::Union{Some, Nothing}=nothing) =
+        (r = new(w,rrid.whence,rrid.id,v); return test_existing_ref(r))
+
+    Future(t::NTuple{4, Any}) = new(t[1],t[2],t[3],t[4])  # Useful for creating dummy, zeroed-out instances
+end</code></pre><div class="code_snippet_title">
+❤️
+Source: <a href="https://github.com/JuliaLang/julia/blob/ed4c44fbaf/stdlib/Distributed/src/remotecall.jl#L25-L35">remotecall.jl</a>
+❤️
+</div>
+<p>A <code>Future</code> is an abstract container of a remote object (it can also reside in the current processor). Beyond the <code>whence</code> and <code>id</code>, it has two extra fields. The <code>where</code> indicates where the underlying value <code>v</code> is stored. Understanding the difference between <code>where</code> and <code>whence</code> is crucial. Let&#39;s say we&#39;re on worker <code>1</code> and would like to do a simple calculation of <code>1+1</code> on worker <code>2</code>. Without the <code>where</code> field, we have to first send the remote calculation message to worker <code>2</code>. Then the worker create a unique <code>RRID</code> and return it to worker <code>1</code>. And when we want to fetch the calculation result <code>v</code>, we have to send the fetch command to worker <code>2</code> again and wait until the calculation is done and passed the result back to worker <code>1</code>.</p><pre><code class="nohighlight hljs">
+                                timeline
+
+                                    │
+ ┌───────────────────────────────┐  │  ┌────────────────────────────────┐
+ │ worker 1                      │  │  │                        worker 2│
+ │                               │  │  │                                │
+ │          remotecall F: 1 + 1 ─┼──┼──┤►                               │
+ │                               │  │  │  create a unique remote ref: R │
+ │                waiting......  │  │  │                                │
+ │                              ◄├──┼──┼─ pass back R                   │
+ │        remote_ref R received  │  │  │                                │
+ │                               │  │  │  do the calculation of F       │
+ │    do some other calculation  │  │  │                                │
+ │                               │  │  │  ......                        │
+ │                       ......  │  │  │                                │
+ │                               │  │  │                                │
+ │ fetch result from remote_ref ─┼──┼──┤► wait F finish                 │
+ │                               │  │  │                                │
+ │                               │  │  │  ......                        │
+ │                waiting......  │  │  │                                │
+ │                              ◄├──┼──┼─ send back result              │
+ │          remote value cached  │  │  │                                │
+ │                               │  │  │                                │
+ └───────────────────────────────┘  │  └────────────────────────────────┘
+                                    ▼</code></pre><p>But if we have a <code>where</code> field to record where the calculation happens, then the first round could be reduced.</p><pre><code class="nohighlight hljs">                              timeline
+
+                                  │
+ ┌─────────────────────────────┐  │  ┌───────────────────┐
+ │  worker 1                   │  │  │          worker 2 │
+ │                             │  │  │                   │
+ │       create remote call F ─┼──┼──┤► received F &amp; R   │
+ │           and remote ref R  │  │  │                   │
+ │                             │  │  │  do calculation   │
+ │  do some other calculation  │  │  │                   │
+ │                             │  │  │  ......           │
+ │                     ......  │  │  │                   │
+ │                             │  │  │                   │
+ │  fetch reult from where(R) ─┼──┼──┤► wait F finish    │
+ │                             │  │  │                   │
+ │                             │  │  │  ......           │
+ │              waiting......  │  │  │                   │
+ │                            ◄├──┼──┼─ send back result │
+ │        remote value cached  │  │  │                   │
+ └─────────────────────────────┘  │  └───────────────────┘
+                                  ▼</code></pre><p><code>RemoteChannel</code> is similar, except that the underlying value can not be copied back and forth. We can only check whether it is ready and <code>take!</code> elements from it.</p><h3 id="3.2-Remote-call"><a class="docs-heading-anchor" href="#3.2-Remote-call">3.2 Remote call</a><a id="3.2-Remote-call-1"></a><a class="docs-heading-anchor-permalink" href="#3.2-Remote-call" title="Permalink"></a></h3><p>Now let&#39;s examine what&#39;s happening in the following simple code:</p><pre><code class="language-julia hljs">using Distributed
+
+addprocs(2)
+
+x = @spawnat 2 begin
+    sleep(3)
+    rand(3)
+end
+
+print(x[])</code></pre><p>First, we create a worker with <code>addprocs(2)</code>. Then we try to create a remote call which simply returns a random vector. The <code>@spawnat</code> macro will wrap the following expression into a parameterless function (usually known as a <code>thunk</code>) and turn it into a <code>remotecall</code>. In <code>remotecall</code>, a <code>Future</code> is first created to store the result in the future. Then the <code>whence</code> and <code>id</code> info of the future is extracted to form the message header (a <code>RRID</code>). The <code>thunk</code> is wrapped in a specific <code>CallMsg</code> and forms the message body. The whole message is serialized and written to the worker&#39;s <code>r_stream</code>. Note that the <code>remotecall</code> is async, so you can work on some other stuff and fetch the result later. On the worker side, once received a new message, it is deserialized and dispatched to the corresponding <code>handle_msg</code> call. For <code>CallMsg</code>, it will create a temp <code>Channel(1)</code> to store the result and associate it with the <code>RRID</code> in its global <code>client_refs</code>. Now when we try to fetch the result with <code>x[]</code>, it will send another message of <code>remotecall_fetch</code> with a dedicated function <code>fetch_ref</code> and wait for the response. Once it receives the result. It will be cached in its <code>:v</code> field, so that future fetch calls will not do the remote call again.</p><p>The following up question is, what about the original data on worker <code>2</code>? Since now we have fetched and cached the value, we won&#39;t need it anymore.</p><p>Actually we can&#39;t remove it from worker <code>2</code> directly. Let&#39;s say we send the future <code>x</code> to another worker <code>3</code> before it fetches the result. If the result is removed from worker <code>2</code> immediately in respond to the fetch operation on worker <code>1</code>. Then the worker <code>3</code> will never get the chance to fetch the result. But we still need to remove it sometime, right? Otherwise the memory usage will keep growing. In fact, the worker where the data of the <code>Future</code> resides will keep track of the connected workers of this <code>Future</code>. Everytime the GC hapens with a <code>Future</code>, we&#39;ll try to delete itself from the connected clients. And when no connected clients left, we&#39;re safe to remove it from <code>client_refs</code>.</p><p>Note that some expresions can&#39;t be executed through <code>@spawnat</code> (for example <code>using SomePackage</code>). That&#39;s why we have several different message types and <code>handle_msg</code> implementations. But the whole pipeline is almost the same.</p><h3 id="3.3-WorkerPool-and-pmap"><a class="docs-heading-anchor" href="#3.3-WorkerPool-and-pmap">3.3 <code>WorkerPool</code> and <code>pmap</code></a><a id="3.3-WorkerPool-and-pmap-1"></a><a class="docs-heading-anchor-permalink" href="#3.3-WorkerPool-and-pmap" title="Permalink"></a></h3><p>With the knowledge above, now we know how the <code>Distributed.jl</code> works. But still it is not very easy to use since we have to deal with the worker id directly. That&#39;s why <code>WorkerPool</code> and <code>pmap</code> are provided. <code>pmap</code> tries to divide the workload first and the worker pool can help to leverage computing resource more efficiently. This part is relatively easy to read and understand.</p><h2 id="Is-Distributed.jl-perfect?"><a class="docs-heading-anchor" href="#Is-Distributed.jl-perfect?">Is <code>Distributed.jl</code> perfect?</a><a id="Is-Distributed.jl-perfect?-1"></a><a class="docs-heading-anchor-permalink" href="#Is-Distributed.jl-perfect?" title="Permalink"></a></h2><p>Well, the standard answer is, there&#39;s no perfect design, only traceoffs. In my opinion, <code>Distributed.jl</code> is designed for HPC environments, where all the workers are quite stable. All the functionalities it provides are very fundamental and do not feature usability that much. On top of it, there&#39;s a <a href="https://github.com/JuliaParallel/Dagger.jl">Dagger.jl</a> which is more usable for dynamic graph computing. And I&#39;m also considering implementing a more flexible one. Stay tuned!</p><script src="https://utteranc.es/client.js"
+        repo="findmyway/TianJun.jl"
+        issue-term="url"
+        label="💬Comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script>
+</article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« 👋 About</a><a class="docs-footer-nextpage" href="../../reading/Notes_on_Distributional_Reinforcement_Learning/">Notes on Distributional Reinforcement Learning »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>. All contents published at this site follows <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> by default. For the Chinese version, please visit <a href="https://tianjun.me">tianjun.me</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 23 December 2023 15:51">Saturday 23 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

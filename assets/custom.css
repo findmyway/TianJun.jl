@@ -1,0 +1,32 @@
+.blogmeta {
+    margin: 15px 0;
+}
+
+.blogmeta svg{
+    margin: 0 3px;
+}
+
+article.content img{
+    display: block;
+    margin: auto;
+}
+
+.avatar {
+    width: 400px;
+    height: 400px;
+    margin: auto;
+    background: url("/assets/logo_square.jpg") no-repeat;
+}
+.avatar:hover {
+    background: url("/assets/logo_square_color.jpg") no-repeat;
+}
+
+iframe {
+    width: 100%;
+    height: 100vh;
+}
+
+.code_snippet_title {
+    font-style: italic;
+    text-align: right;
+}
