@@ -10,7 +10,8 @@ The original photo was taken in the summer of 2012 by my current wife. It was in
 
 ## About Me
 
-- **2022 until now**, software engineer at [inspir.ai](https://inspirai.com/) focusing on NLP and RL in games. (We are hiring🤗)
+- **2023 until now**, software engineer at [01.ai](https://01.ai/), building LLM infrastructure. (We are hiring🤗)
+- **2022~2023**, software engineer at inspir.ai focusing on NLP and RL in games.
 - **2017~2022**, worked on several natural language understanding related projects at Microsoft.
 - **2016~2017**, I mainly worked on smart subsidies and dispatching at Didi Chuxing.
 - **2013~2016**, master's degree on NLP at [Institute of Automation - Chinese Academy of Sciences](http://english.ia.cas.cn/).

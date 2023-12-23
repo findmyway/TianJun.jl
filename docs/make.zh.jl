@@ -20,7 +20,7 @@ makedocs(
         ]
     ),
     sitename = "田俊",
-    linkcheck = haskey(ENV, "CI"),
+    warnonly=[:linkcheck, :cross_references],
     build = BUILD_DIR,
     pages = [
         "👋 关于" => "index.md",
