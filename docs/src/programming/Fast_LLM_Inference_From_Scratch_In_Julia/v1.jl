@@ -154,6 +154,6 @@ function load_model()
             for i in 0:config["num_hidden_layers"]-1
         ],
         RMSNorm(config["rms_norm_eps"], ps["model.norm.weight"]),
-        Dense(haskey(ps, "lm_head.weight") ? ps["lm_head.weight"]' : ps["model.embed_tokens.weight"])
+        Dense(haskey(ps, "lm_head.weight") ? ps["lm_head.weight"] : ps["model.embed_tokens.weight"])
     )
 end
