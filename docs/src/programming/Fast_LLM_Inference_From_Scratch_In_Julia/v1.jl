@@ -16,12 +16,20 @@ end
 (m::Dense)(x) = reshape(m(reshape(x, size(x, 1), :)), :, size(x)[2:end]...)
 
 struct RMSNorm
-    eps::Float64
+    eps::Float32
     weight::AbstractVector
 end
 
 function (m::RMSNorm)(x::AbstractArray{T}) where {T}
     m.weight .* T.(Float32.(x) ./ sqrt.(mean(Float32.(x) .^ 2, dims=1) .+ m.eps))
+end
+
+
+struct RopeScaling
+    factor::Float32
+    high_freq_factor::Float32
+    low_freq_factor::Float32
+    original_max_position_embeddings::Int
 end
 
 struct Attention
@@ -33,11 +41,33 @@ struct Attention
     head_dim::Int
     n_heads::Int
     n_kv_heads::Int
+    rope_scaling::RopeScaling
 end
 
-function apply_rotary_embedding(x::AbstractArray{T}, head_dim, rope_theta) where {T}
+function apply_rope_scaling(inv_freq::AbstractArray{T}, config::RopeScaling) where {T}
+    old_ctx_len = config.original_max_position_embeddings
+    low_freq_wavelen = old_ctx_len / config.low_freq_factor
+    high_freq_wavelen = old_ctx_len / config.high_freq_factor
+
+    map(inv_freq) do freq
+        wavelen = 2π / freq
+        scaled_freq = if wavelen > low_freq_wavelen
+            freq / config.factor
+        elseif wavelen > high_freq_wavelen
+            smooth = (old_ctx_len / wavelen - config.low_freq_factor) / (config.high_freq_factor - config.low_freq_factor)
+            (1 - smooth) * freq / config.factor + smooth * freq
+        else
+            freq
+        end
+        T(scaled_freq)
+    end
+end
+
+function apply_rotary_embedding(x::AbstractArray{T}, head_dim, rope_theta, rope_scaling) where {T}
     inv_freq = one(T) ./ (rope_theta .^ ((0:2:(head_dim-1)) ./ T(head_dim)))
-    freqs = reshape(inv_freq, :, 1) * reshape(0:size(x)[end]-1, 1, :)
+    inv_freq = apply_rope_scaling(inv_freq, rope_scaling)
+    freqs = reshape(inv_freq, :, 1) * reshape(0:size(x, 3)-1, 1, :)
+    freqs = reshape(freqs, size(freqs, 1), 1, size(freqs, 2)) # for broadcasting along multi head dimension
     freqs_cos, freqs_sin = cos.(freqs), sin.(freqs)
 
     x_r = selectdim(reshape(x, :, 2, size(x)[2:end]...), 2, 1)
@@ -73,7 +103,8 @@ function (m::Attention)(x::AbstractArray{T,3}) where {T}
     xk = reshape(xk, m.head_dim, m.n_kv_heads, size(xk, 2), size(xk, 3))
     xv = reshape(xv, m.head_dim, m.n_kv_heads, size(xv, 2), size(xv, 3))
 
-    xq, xk = apply_rotary_embedding.((xq, xk), m.head_dim, m.rope_theta)
+    xq = apply_rotary_embedding(xq, m.head_dim, m.rope_theta, m.rope_scaling)
+    xk = apply_rotary_embedding(xk, m.head_dim, m.rope_theta, m.rope_scaling)
     xk, xv = repeat.((xk, xv), inner=(1, m.n_heads ÷ m.n_kv_heads, 1, 1)) # GQA
     o = causal_dot_product_attention(xq, xk, xv)
 
@@ -126,7 +157,7 @@ using SafeTensors: load_safetensors
 using JSON3
 
 function load_model()
-    ps_bf16 = load_safetensors("models/Llama-3.2-1B/model.safetensors")
+    ps_bf16 = load_safetensors("models/Llama-3.2-1B-Instruct/model.safetensors")
     ps = Dict(k => Float32.(v) for (k, v) in ps_bf16)
     config = JSON3.read("models/Llama-3.2-1B/config.json")
     Llama3(
@@ -143,6 +174,12 @@ function load_model()
                     config["head_dim"],
                     config["num_attention_heads"],
                     config["num_key_value_heads"],
+                    RopeScaling(
+                        config["rope_scaling"]["factor"],
+                        config["rope_scaling"]["high_freq_factor"],
+                        config["rope_scaling"]["low_freq_factor"],
+                        config["rope_scaling"]["original_max_position_embeddings"],
+                    )
                 ),
                 RMSNorm(config["rms_norm_eps"], ps["model.layers.$i.post_attention_layernorm.weight"]),
                 FeedForwardLayer(
@@ -156,4 +193,23 @@ function load_model()
         RMSNorm(config["rms_norm_eps"], ps["model.norm.weight"]),
         Dense(haskey(ps, "lm_head.weight") ? ps["lm_head.weight"] : ps["model.embed_tokens.weight"])
     )
+end
+
+#####
+
+import HuggingFaceTokenizers as HFT
+
+TOKENIZER = HFT.from_file(HFT.Tokenizer, "models/Llama-3.2-1B-Instruct/tokenizer.json")
+encode(s) = HFT.encode(TOKENIZER, s).ids .+ 1
+decode(ids) = HFT.decode(TOKENIZER, ids .- 1)
+
+function generate(model=load_model(), prompt="The key to life is"; max_new_tokens=1000, stop_condition=(==(128009 + 1)))
+    tokens = encode(prompt)
+    for _ in 1:max_new_tokens
+        logits = model(reshape(tokens, :, 1))
+        token = argmax(logits[:, end])
+        push!(tokens, token)
+        stop_condition(token) && break
+    end
+    decode(tokens)
 end
