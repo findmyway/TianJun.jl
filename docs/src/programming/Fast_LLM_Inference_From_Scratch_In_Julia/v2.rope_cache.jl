@@ -2,7 +2,7 @@ include("v1.vanilla.jl")
 
 # In v1, the `freqs_cos` and `freqs_sin` are recalculated across layers.
 
-using Base.ScopedValues
+using ScopedValues
 
 function rope_cache(max_seq_len, head_dim, rope_theta, rope_scaling, T=Float32)
     inv_freq = one(T) ./ (rope_theta .^ ((0:2:(head_dim-1)) ./ T(head_dim)))

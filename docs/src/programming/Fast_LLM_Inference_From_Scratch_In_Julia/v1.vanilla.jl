@@ -159,7 +159,7 @@ using JSON3
 function load_model()
     ps_bf16 = load_safetensors("models/Llama-3.2-1B-Instruct/model.safetensors")
     ps = Dict(k => Float32.(v) for (k, v) in ps_bf16)
-    config = JSON3.read("models/Llama-3.2-1B/config.json")
+    config = JSON3.read("models/Llama-3.2-1B-Instruct/config.json")
     Llama3(
         EmbeddingLayer(ps["model.embed_tokens.weight"]'),
         [
@@ -208,7 +208,7 @@ function generate(model=load_model(), prompt="The key to life is"; max_new_token
     for _ in 1:max_new_tokens
         logits = model(reshape(tokens, :, 1))
         token = argmax(logits[:, end])
-        push!(tokens, token)
+        tokens = vcat(tokens, [token])
         stop_condition(token) && break
     end
     decode(tokens)
