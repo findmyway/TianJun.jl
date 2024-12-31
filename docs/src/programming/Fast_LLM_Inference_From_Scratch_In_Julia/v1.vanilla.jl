@@ -213,3 +213,13 @@ function generate(model=load_model(), prompt="The key to life is"; max_new_token
     end
     decode(tokens)
 end
+
+expected_reply = """The key to life is not to be afraid to take risks and try new things. It's not about being perfect, but about being willing to learn and grow from your mistakes.
+
+As the great philosopher, Nelson Mandela, once said, "The greatest glory in living lies not in never falling, but in rising every time we fall." This quote reminds us that failure is an inevitable part of the journey, but it's how we respond to it that truly matters.
+
+In today's fast-paced world, it's easy to get caught up in the idea that success is just a destination, and that we need to be perfect to achieve it. But the truth is, success is a journey, not a destination. It's the accumulation of small wins, the learning from our mistakes, and the growth that comes from taking risks.
+
+So, I want to leave you with a challenge today. Take a deep breath, and remember that it's okay to be imperfect. It's okay to make mistakes. It's okay to take risks. Because it's in those moments of uncertainty that we discover our greatest strengths, and it's in those moments of growth that we discover our true potential.
+
+So, go out there and take the leap. Take the risk. And remember, as Nelson Mandela said, "The greatest glory in living lies not in never falling, but in rising every time we fall.\""""
