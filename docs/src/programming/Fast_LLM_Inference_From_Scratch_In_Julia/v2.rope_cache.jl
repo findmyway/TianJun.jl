@@ -4,25 +4,25 @@ include("v1.vanilla.jl")
 
 using ScopedValues
 
-function rope_cache(max_seq_len, head_dim, rope_theta, rope_scaling, T=Float32)
+function rope_cache(seq_len, head_dim, rope_theta, rope_scaling, T=Float32; n_prev_tokens=0)
     inv_freq = one(T) ./ (rope_theta .^ ((0:2:(head_dim-1)) ./ T(head_dim)))
     inv_freq = apply_rope_scaling(inv_freq, rope_scaling)
-    freqs = reshape(inv_freq, :, 1) * reshape(0:max_seq_len-1, 1, :)
+    freqs = reshape(inv_freq, :, 1) * reshape(n_prev_tokens:n_prev_tokens+seq_len-1, 1, :)
     freqs = reshape(freqs, size(freqs, 1), 1, size(freqs, 2)) # for broadcasting along multi head dimension
     cos.(freqs), sin.(freqs)
 end
 
 ROPE_CACHE = ScopedValue{Union{Nothing,Tuple{AbstractArray,AbstractArray}}}(nothing)
 
-function apply_rotary_embedding(x::AbstractArray{T}, head_dim, rope_theta, rope_scaling) where {T}
+function apply_rotary_embedding(x::AbstractArray{T}, head_dim, rope_theta, rope_scaling; n_prev_tokens=0) where {T}
     seq_len = size(x, 3)
     cache = ROPE_CACHE[]
     if isnothing(cache)
-        freqs_cos, freqs_sin = rope_cache(seq_len, head_dim, rope_theta, rope_scaling, T)
+        freqs_cos, freqs_sin = rope_cache(seq_len, head_dim, rope_theta, rope_scaling, T; n_prev_tokens)
     else
         freqs_cos_cache, freqs_sin_cache = cache
-        freqs_cos = view(freqs_cos_cache, :, :, 1:seq_len)
-        freqs_sin = view(freqs_sin_cache, :, :, 1:seq_len)
+        freqs_cos = view(freqs_cos_cache, :, :, n_prev_tokens+1:seq_len+n_prev_tokens)
+        freqs_sin = view(freqs_sin_cache, :, :, n_prev_tokens+1:seq_len+n_prev_tokens)
     end
 
     x_r = selectdim(reshape(x, :, 2, size(x)[2:end]...), 2, 1)

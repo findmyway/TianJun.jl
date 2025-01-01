@@ -1,3 +1,4 @@
+using ProgressMeter
 using NNlib: batched_mul, softmax, swish
 using LinearAlgebra: triu!
 using Statistics: mean
