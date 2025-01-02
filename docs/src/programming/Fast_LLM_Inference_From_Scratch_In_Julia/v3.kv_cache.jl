@@ -6,22 +6,23 @@ include("v2.rope_cache.jl")
 end
 
 function (c::KVCache)(k, v)
-    c.k_cache = isnothing(c.k_cache) ? k : cat(c.k_cache, k; dims=2)
-    c.v_cache = isnothing(c.v_cache) ? v : cat(c.v_cache, v; dims=2)
+    c.k_cache = isnothing(c.k_cache) ? k : cat(c.k_cache, k; dims=3)
+    c.v_cache = isnothing(c.v_cache) ? v : cat(c.v_cache, v; dims=3)
     c.k_cache, c.v_cache
 end
 
 function (m::Attention)(x::AbstractArray{T,3}, n_prev_tokens::Int, kv_cache) where {T}
     xq, xk, xv = m.q_proj(x), m.k_proj(x), m.v_proj(x)
 
-    xk, xv = kv_cache(xk, xv)
-
     xq = reshape(xq, m.head_dim, m.n_heads, size(xq, 2), size(xq, 3))
     xk = reshape(xk, m.head_dim, m.n_kv_heads, size(xk, 2), size(xk, 3))
     xv = reshape(xv, m.head_dim, m.n_kv_heads, size(xv, 2), size(xv, 3))
 
     xq = apply_rotary_embedding(xq, m.head_dim, m.rope_theta, m.rope_scaling; n_prev_tokens)
-    xk = apply_rotary_embedding(xk, m.head_dim, m.rope_theta, m.rope_scaling)
+    xk = apply_rotary_embedding(xk, m.head_dim, m.rope_theta, m.rope_scaling; n_prev_tokens)
+
+    xk, xv = kv_cache(xk, xv)
+
     xk, xv = repeat.((xk, xv), inner=(1, m.n_heads ÷ m.n_kv_heads, 1, 1)) # GQA
     o = causal_dot_product_attention(xq, xk, xv)
 
