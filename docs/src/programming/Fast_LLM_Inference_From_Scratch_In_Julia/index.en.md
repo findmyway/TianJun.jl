@@ -14,6 +14,7 @@ Below we'll focus on the model `Llama-3.2-1B-Instruct` first.
 ## References
 
 - [Fast LLM Inference From Scratch](https://andrewkchan.dev/posts/yalm.html#section-1)
+- [Making Deep Learning Go Brrrr From First Principles](https://horace.io/brrr_intro.html)
 
 [vLLM]: https://github.com/vllm-project/vllm/
 [SGLang]: https://github.com/sgl-project/sglang
