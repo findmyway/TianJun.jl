@@ -1,4 +1,5 @@
 using BFloat16s
+using SafeTensors: load_sharded_safetensors
 
 struct EmbeddingLayer
     weight::AbstractMatrix
@@ -26,52 +27,34 @@ end
 # YaRN
 #####
 
-@kwdef struct RopeScaling
-    dim::Int
-    rope_theta::Float32
-    max_position_embeddings::Int
-
-    scaling_factor::Float32
-    beta_slow::Float32
-    beta_fast::Float32
-    original_max_position_embeddings::Int
-
-    cache::Ref{@NamedTuple{cos::Array, sin::Array}} = Ref{@NamedTuple{cos::Array, sin::Array}}()
-end
-
-
 # Eq 17 in YaRN paper, given r of α or β, find the corresponding d
 r2d(r, D, b, L) = (D * log(L / (2π * r))) / (2log(b))
 
-# Eq 22 in YaRN paper
+# (Modified) Eq 22 in YaRN paper
 mscale(scale, mscale) = scale <= 1.0 ? 1.0 : 0.1 * mscale * log(scale) + 1.0
 
-function set_cos_sin_cache(r::RopeScaling)
+struct RopeCache
+    cos::Array
+    sin::Array
 end
 
-function (r::RopeScaling)(seq_len::Int)
-    if !isassigned(r.cache)
-        freq_extra = 1 ./ (r.rope_theta .^ ((0:2:(r.dim-1)) ./ r.dim))
-        freq_inter = 1 ./ (r.scaling_factor .* r.rope_theta .^ ((0:2:(r.dim-1)) ./ r.dim))
+function RopeCache(; dim, rope_theta, max_position_embeddings, scaling_factor, beta_slow, beta_fast, original_max_position_embeddings)
+    freq_extra = 1 ./ (rope_theta .^ ((0:2:(dim-1)) ./ dim))
+    freq_inter = 1 ./ (scaling_factor .* rope_theta .^ ((0:2:(dim-1)) ./ dim))
 
-        low = floor(Int, r2d(r.beta_fast, r.dim, r.rope_theta, r.original_max_position_embeddings))
-        high = ceil(Int, r2d(r.beta_slow, r.dim, r.rope_theta, r.original_max_position_embeddings))
-        mask = vcat(zeros(low), range(0, 1, length=high - low + 1), ones(r.dim ÷ 2 - high - 1))
+    low = floor(Int, r2d(beta_fast, dim, rope_theta, original_max_position_embeddings))
+    high = ceil(Int, r2d(beta_slow, dim, rope_theta, original_max_position_embeddings))
+    mask = vcat(zeros(low), range(0, 1, length=high - low + 1), ones(dim ÷ 2 - high - 1))
 
-        inv_freq = freq_inter .* mask .+ freq_extra .* (1 .- mask)
-        t = 0:(r.max_position_embeddings-1)
-        freqs = inv_freq * t'
+    inv_freq = freq_inter .* mask .+ freq_extra .* (1 .- mask)
+    t = 0:(max_position_embeddings-1)
+    freqs = inv_freq * t'
 
-        # !!! mscal is skipped here.
-        # see https://github.com/ggml-org/llama.cpp/discussions/7416
-        emb = vcat(freqs, freqs)
-        r.cache[] = (cos=BFloat16.(cos.(emb)), sin=BFloat16.(sin.(emb)))
-    end
-
-    cos, sin = r.cache[]
-
-    @view cos[:, 1:seq_len], @view sin[:, 1:seq_len]
+    # !!! mscal is skipped here.
+    # see https://github.com/ggml-org/llama.cpp/discussions/7416
+    RopeCache(BFloat16.(cos.(freqs)), BFloat16.(sin.(freqs)))
 end
+
 
 #####
 # MLA
@@ -89,10 +72,21 @@ struct Attention
     k_v_proj::Dense
     o_proj::Dense
 
-    rope_scaling::RopeScaling
+    rope_cache::RopeCache
 end
 
-function apply_rotary_pos_emb()
+function apply_rotary_pos_emb(x, cache)
+    D, H, T, B = size(x)
+    freqs_cos = reshape(cache.cos[:, 1:T], :, 1, T)
+    freqs_sin = reshape(cache.sin[:, 1:T], :, 1, T)
+
+    # !!! different from the llama implementation
+    x_r = selectdim(reshape(x, 2, :, size(x)[2:end]...), 1, 1)
+    x_i = selectdim(reshape(x, 2, :, size(x)[2:end]...), 1, 2)
+
+    x_pos_r = freqs_cos .* x_r .- freqs_sin .* x_i
+    x_pos_i = freqs_sin .* x_r .+ freqs_cos .* x_i
+    vcat(x_pos_r, x_pos_i)
 end
 
 function causal_dot_product_attention(q::AbstractArray{T,4}, k::AbstractArray{T,4}, v::AbstractArray{T,4}) where {T}
@@ -122,12 +116,12 @@ function (m::Attention)(h)
     cQ = reshape(cQ, m.q_head_dim, m.num_heads, T, B)
     qᶜ = @view cQ[1:m.qk_nope_head_dim, :, :, :]
     qᴿ = @view cQ[m.qk_nope_head_dim+1:end, :, :, :]
-    qᴿ = apply_rotary_pos_emb(qᴿ)
+    qᴿ = apply_rotary_pos_emb(qᴿ, m.rope_cache)
     q = vcat(qᶜ, qᴿ)
 
     cKV = m.kv_proj(h)
     kᴿ = @view cKV[m.kv_lora_rank+1:end, :, :, :]
-    kᴿ = apply_rotary_pos_emb(kᴿ)
+    kᴿ = apply_rotary_pos_emb(kᴿ, m.rope_cache)
 
     cᴷⱽ = @view cKV[1:m.kv_lora_rank, :, :, :]
     cᴷⱽ = cᴷⱽ |> m.kv_layernorm |> m.k_v_proj
@@ -136,6 +130,12 @@ function (m::Attention)(h)
 
     v = @view cᴷⱽ[m.qk_nope_head_dim+1:end, :, :, :]
     o = causal_dot_product_attention(q, k, v)
+end
+
+struct FeedForwardLayer
+    up_proj::Dense
+    gate_proj::Dense
+    down_proj::Dense
 end
 
 struct TransformerBlock
@@ -149,4 +149,8 @@ function (m::TransformerBlock)(x)
     h = x |> m.pre_norm |> m.attn
     o = (x + h) |> m.post_norm |> m.ffn
     x + h + o
+end
+
+function load_model()
+    ps = load_sharded_safetensors("models/DeepSeek-V2-Lite-Chat")
 end
