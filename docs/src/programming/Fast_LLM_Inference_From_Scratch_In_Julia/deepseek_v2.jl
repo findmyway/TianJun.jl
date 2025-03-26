@@ -3,6 +3,7 @@ using SafeTensors: load_sharded_safetensors
 using Statistics: mean
 using NNlib: batched_mul, softmax, swish
 using LinearAlgebra: triu!
+using JSON3
 
 struct EmbeddingLayer
     weight::AbstractMatrix
@@ -135,7 +136,6 @@ function (m::Attention)(h)
     masked_logits = ifelse.(mask, logits, typemin(eltype(logits)))
     scores = softmax(masked_logits)
     out = batched_mul(v, scores)
-    @info "shapes" size(v) size(scores) size(out)
     out = permutedims(out, (1, 3, 2, 4))
     out = reshape(out, :, size(out, 3), size(out, 4))
     o = m.o_proj(out)
@@ -149,11 +149,54 @@ struct FeedForwardLayer
     down_proj::Dense
 end
 
+function (m::FeedForwardLayer)(x)
+    h = m.up_proj(x)
+    a = m.gate_proj(x)
+    h = swish.(a) .* h
+    o = m.down_proj(h)
+end
+
+struct MoELayer
+    topk::Int
+    routed_scaling_factor::Float32
+
+    gate::Dense
+    experts::Vector{FeedForwardLayer}
+    shared_experts::FeedForwardLayer
+end
+
+function (m::MoELayer)(h)
+    hh = h
+    h = reshape(h, size(h, 1), :)
+
+    scores = softmax(m.gate(h))
+    topk_linear_idx = sortperm(scores, dims=1, rev=true)[1:m.topk, :]
+    topk_weight = scores[topk_linear_idx] .* m.routed_scaling_factor
+    topk_cartesian_idx = CartesianIndices(size(scores))[topk_linear_idx]
+
+    expert_out = similar(h, size(h, 1), m.topk, size(h, 2))
+    for i in 1:length(m.experts)
+        expert = m.experts[i]
+        # !!! original implementation use the argsort trick
+        # the implementation here is less efficient but more clear 
+        loc = findall(x -> x[1] == i, topk_cartesian_idx)
+        token_ids = map(x -> x[2], topk_cartesian_idx[loc])
+        expert_input = h[:, token_ids]
+        expert_output = expert(expert_input)
+        expert_out[:, loc] .= expert_output
+    end
+
+    o = expert_out .* reshape(topk_weight, 1, size(topk_weight)...)
+    o = sum(o, dims=2)
+
+    reshape(o, size(hh)...) .+ m.shared_experts(hh)
+end
+
 struct TransformerBlock
     pre_norm::RMSNorm
     attn::Attention
     post_norm::RMSNorm
-    ffn::FeedForwardLayer
+    ffn::Union{FeedForwardLayer,MoELayer}
 end
 
 function (m::TransformerBlock)(x)
@@ -162,6 +205,102 @@ function (m::TransformerBlock)(x)
     x + h + o
 end
 
+struct DeepSeekV2
+    embedding_layer::EmbeddingLayer
+    transformer_blocks::Vector{TransformerBlock}
+    norm_layer::RMSNorm
+    head::Dense
+end
+
+function (m::DeepSeekV2)(x)
+    h = m.embedding_layer(x)
+    for (i, block) in enumerate(m.transformer_blocks)
+        @info "Layer $i processing..."
+        h = block(h)
+    end
+    h = m.norm_layer(h)
+    o = m.head(h)
+end
+
 function load_model()
     ps = load_sharded_safetensors("models/DeepSeek-V2-Lite-Chat-fp32")
+    c = JSON3.read("models/DeepSeek-V2-Lite-Chat-fp32/config.json")
+    rope_cache = RopeCache(
+        dim=c["qk_rope_head_dim"],
+        rope_theta=c["rope_theta"],
+        max_position_embeddings=c["max_position_embeddings"],
+        scaling_factor=c["rope_scaling"]["factor"],
+        beta_slow=c["rope_scaling"]["beta_slow"],
+        beta_fast=c["rope_scaling"]["beta_fast"],
+        original_max_position_embeddings=c["rope_scaling"]["original_max_position_embeddings"],
+        mscale=c["rope_scaling"]["mscale"],
+        mscale_all_dim=c["rope_scaling"]["mscale_all_dim"],
+    )
+    DeepSeekV2(
+        EmbeddingLayer(ps["model.embed_tokens.weight"]'),
+        [
+            TransformerBlock(
+                RMSNorm(c["rms_norm_eps"], ps["model.layers.$i.input_layernorm.weight"]),
+                Attention(
+                    c["num_attention_heads"],
+                    c["qk_nope_head_dim"],
+                    c["kv_lora_rank"],
+                    Dense(ps["model.layers.$i.self_attn.q_proj.weight"]),
+                    Dense(ps["model.layers.$i.self_attn.kv_a_proj_with_mqa.weight"]),
+                    RMSNorm(c["rms_norm_eps"], ps["model.layers.$i.self_attn.kv_a_layernorm.weight"]),
+                    Dense(ps["model.layers.$i.self_attn.kv_b_proj.weight"]),
+                    Dense(ps["model.layers.$i.self_attn.o_proj.weight"]),
+                    rope_cache
+                ),
+                RMSNorm(c["rms_norm_eps"], ps["model.layers.$i.post_attention_layernorm.weight"]),
+                i < c["first_k_dense_replace"] ? FeedForwardLayer(
+                    Dense(ps["model.layers.$i.mlp.up_proj.weight"]),
+                    Dense(ps["model.layers.$i.mlp.gate_proj.weight"]),
+                    Dense(ps["model.layers.$i.mlp.down_proj.weight"])
+                ) : MoELayer(
+                    c["num_experts_per_tok"],
+                    c["routed_scaling_factor"],
+                    Dense(ps["model.layers.$i.mlp.gate.weight"]),
+                    [
+                        FeedForwardLayer(
+                            Dense(ps["model.layers.$i.mlp.experts.$j.up_proj.weight"]),
+                            Dense(ps["model.layers.$i.mlp.experts.$j.gate_proj.weight"]),
+                            Dense(ps["model.layers.$i.mlp.experts.$j.down_proj.weight"])
+                        )
+                        for j in 0:c["n_routed_experts"]-1
+                    ],
+                    FeedForwardLayer(
+                        Dense(ps["model.layers.$i.mlp.shared_experts.up_proj.weight"]),
+                        Dense(ps["model.layers.$i.mlp.shared_experts.gate_proj.weight"]),
+                        Dense(ps["model.layers.$i.mlp.shared_experts.down_proj.weight"])
+                    )
+                )
+            )
+            for i in 0:c["num_hidden_layers"]-1
+        ],
+        RMSNorm(c["rms_norm_eps"], ps["model.norm.weight"]),
+        Dense(ps["lm_head.weight"])
+    )
+end
+
+import HuggingFaceTokenizers as HFT
+
+TOKENIZER = HFT.from_file(HFT.Tokenizer, "models/DeepSeek-V2-Lite-Chat-fp32/tokenizer.json")
+encode(s) = HFT.encode(TOKENIZER, s).ids .+ 1
+decode(ids) = HFT.decode(TOKENIZER, ids .- 1)
+config = JSON3.read("models/DeepSeek-V2-Lite-Chat-fp32/config.json")
+
+function verify(max_new_tokens=100)
+    model = load_model()
+    prompt = "An attention function can be described as mapping a query and a set of key-value pairs to an output, where the query, keys, values, and output are all vectors. The output is"
+    tokens = vcat([config["bos_token_id"] + 1], encode(prompt))
+
+    for _ in 1:max_new_tokens
+        logits = model(reshape(tokens, :, 1))
+        token = argmax(logits[:, end])
+        push!(tokens, token)
+        println(decode(tokens))
+    end
+    expected = "An attention function can be described as mapping a query and a set of key-value pairs to an output, where the query, keys, values, and output are all vectors. The output is a weighted sum of the values, where the weights are determined by the dot product of the query with the keys, possibly followed by an operation such as an softmax.\n\nIn the context of machine learning, attention functions are used to help the model focus on certain parts of the input data when making predictions. This is particularly useful in tasks such as translation, where the model needs to pay attention to different parts of the input sentence to generate the correct translation.\n\nThere are several different types of"
+    @assert decode(tokens) == expected
 end
